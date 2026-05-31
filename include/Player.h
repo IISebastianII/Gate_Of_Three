@@ -1,23 +1,26 @@
 #pragma once
 
+#include "Entity.h"
+
 #include <SFML/Graphics.hpp>
 
 #include <map>
 #include <string>
 #include <vector>
 
-class Player
+class Player : public Entity
 {
 public:
     Player();
 
     void handleEvent(const sf::Event& event);
+    void update(float deltaTime) override;
     void update(float deltaTime, const std::vector<sf::FloatRect>& solidColliders, const sf::FloatRect& worldBounds);
-    void draw(sf::RenderTarget& target) const;
+    void draw(sf::RenderTarget& target) const override;
 
     void setFeetPosition(sf::Vector2f feetPosition);
     sf::Vector2f getCenter() const;
-    sf::FloatRect getBounds() const;
+    sf::FloatRect getBounds() const override;
 
 private:
     enum class AnimationState
@@ -59,8 +62,6 @@ private:
     static constexpr float textureScale_ = 3.f;
     static const sf::Vector2f colliderSize_;
 
-    sf::Vector2f position_;
-    sf::Vector2f velocity_;
     bool facingRight_ = true;
     bool onGround_ = false;
     bool jumpQueued_ = false;

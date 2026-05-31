@@ -9,12 +9,20 @@ const sf::Vector2f Player::colliderSize_ = {46.f, 92.f};
 
 Player::Player()
 {
+    boundsSize_ = colliderSize_;
     placeholder_.setSize(colliderSize_);
     placeholder_.setFillColor(sf::Color(70, 110, 180));
     placeholder_.setOutlineColor(sf::Color::White);
     placeholder_.setOutlineThickness(2.f);
 
     loadAnimations();
+    syncDrawable();
+}
+
+void Player::update(float deltaTime)
+{
+    updateActionTimers(deltaTime);
+    updateAnimation(deltaTime);
     syncDrawable();
 }
 

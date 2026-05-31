@@ -1,5 +1,5 @@
 TEMPLATE = app
-TARGET = Gate_of_three
+TARGET = GateOfThree
 DESTDIR = $$OUT_PWD/bin
 CONFIG += console c++17
 CONFIG -= app_bundle
@@ -13,18 +13,49 @@ DEFINES += ASSET_ROOT=\\\"$$PWD/Assets\\\"
 
 SOURCES += \
     src/AssetPaths.cpp \
+    src/BattleRoom.cpp \
+    src/Boss.cpp \
+    src/BossRoom.cpp \
+    src/Chest.cpp \
+    src/ChestRoom.cpp \
+    src/Enemy.cpp \
+    src/Entity.cpp \
     src/Game.cpp \
+    src/GameObject.cpp \
+    src/HealRoom.cpp \
+    src/Npc.cpp \
     src/Player.cpp \
-    src/StaticNpc.cpp \
+    src/Projectile.cpp \
+    src/Room.cpp \
+    src/Spell.cpp \
     src/TutorialRoom.cpp \
     src/main.cpp
 
 HEADERS += \
     include/AssetPaths.h \
+    include/BattleRoom.h \
+    include/Boss.h \
+    include/BossRoom.h \
+    include/Chest.h \
+    include/ChestRoom.h \
+    include/Enemy.h \
+    include/Entity.h \
     include/Game.h \
+    include/GameObject.h \
+    include/HealRoom.h \
+    include/Npc.h \
     include/Player.h \
-    include/StaticNpc.h \
+    include/Projectile.h \
+    include/Room.h \
+    include/RoomType.h \
+    include/Spell.h \
     include/TutorialRoom.h
+
+OTHER_FILES += \
+    .gitignore \
+    CMakeLists.txt \
+    README.md \
+    $$files($$PWD/Assets/*, true)
 
 CONFIG(debug, debug|release) {
     LIBS += -LC:/SFML/lib \

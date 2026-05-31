@@ -1,6 +1,7 @@
 #include "Game.h"
 
 #include <algorithm>
+#include <memory>
 
 namespace
 {
@@ -17,7 +18,9 @@ Game::Game()
     window_.setVerticalSyncEnabled(true);
     window_.setKeyRepeatEnabled(false);
 
-    player_.setFeetPosition(tutorialRoom_.getPlayerSpawnFeet());
+    currentRoom_ = std::make_unique<TutorialRoom>();
+    currentRoom_->onEnter();
+    player_.setFeetPosition(currentRoom_->getPlayerSpawnFeet());
     updateCamera();
 }
 
@@ -55,8 +58,8 @@ void Game::processEvents()
 
 void Game::update(float deltaTime)
 {
-    tutorialRoom_.update(deltaTime);
-    player_.update(deltaTime, tutorialRoom_.getSolidColliders(), tutorialRoom_.getBounds());
+    currentRoom_->update(deltaTime);
+    player_.update(deltaTime, currentRoom_->getSolidColliders(), currentRoom_->getBounds());
     updateCamera();
 }
 
@@ -65,7 +68,7 @@ void Game::render()
     window_.clear(sf::Color(126, 184, 208));
     window_.setView(gameView_);
 
-    tutorialRoom_.draw(window_);
+    currentRoom_->draw(window_);
     player_.draw(window_);
 
     window_.display();
@@ -73,7 +76,7 @@ void Game::render()
 
 void Game::updateCamera()
 {
-    const sf::FloatRect roomBounds = tutorialRoom_.getBounds();
+    const sf::FloatRect roomBounds = currentRoom_->getBounds();
     const sf::Vector2f halfView = gameView_.getSize() * 0.5f;
     const sf::Vector2f playerCenter = player_.getCenter();
 

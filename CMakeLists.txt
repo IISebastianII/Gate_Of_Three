@@ -12,40 +12,65 @@ endif()
 
 find_package(SFML 2 COMPONENTS graphics window system REQUIRED)
 
-add_executable(Gate_of_three
+add_executable(GateOfThree
     src/main.cpp
     src/AssetPaths.cpp
+    src/BattleRoom.cpp
+    src/Boss.cpp
+    src/BossRoom.cpp
+    src/Chest.cpp
+    src/ChestRoom.cpp
+    src/Enemy.cpp
+    src/Entity.cpp
     src/Game.cpp
+    src/GameObject.cpp
+    src/HealRoom.cpp
+    src/Npc.cpp
     src/Player.cpp
-    src/StaticNpc.cpp
+    src/Projectile.cpp
+    src/Room.cpp
+    src/Spell.cpp
     src/TutorialRoom.cpp
     include/AssetPaths.h
+    include/BattleRoom.h
+    include/Boss.h
+    include/BossRoom.h
+    include/Chest.h
+    include/ChestRoom.h
+    include/Enemy.h
+    include/Entity.h
     include/Game.h
+    include/GameObject.h
+    include/HealRoom.h
+    include/Npc.h
     include/Player.h
-    include/StaticNpc.h
+    include/Projectile.h
+    include/Room.h
+    include/RoomType.h
+    include/Spell.h
     include/TutorialRoom.h
 )
 
-target_include_directories(Gate_of_three PRIVATE include)
-target_link_libraries(Gate_of_three PRIVATE sfml-graphics sfml-window sfml-system)
+target_include_directories(GateOfThree PRIVATE include)
+target_link_libraries(GateOfThree PRIVATE sfml-graphics sfml-window sfml-system)
 
 string(REPLACE "\\" "/" ASSET_ROOT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/Assets")
-target_compile_definitions(Gate_of_three PRIVATE ASSET_ROOT="${ASSET_ROOT_PATH}")
+target_compile_definitions(GateOfThree PRIVATE ASSET_ROOT="${ASSET_ROOT_PATH}")
 
 if(WIN32)
     set(SFML_BIN_DIR "C:/SFML/bin" CACHE PATH "Path to SFML 2.x DLL directory")
     if(EXISTS "${SFML_BIN_DIR}")
         file(GLOB SFML_RUNTIME_DLLS "${SFML_BIN_DIR}/*.dll")
-        add_custom_command(TARGET Gate_of_three POST_BUILD
+        add_custom_command(TARGET GateOfThree POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
                 ${SFML_RUNTIME_DLLS}
-                $<TARGET_FILE_DIR:Gate_of_three>
+                $<TARGET_FILE_DIR:GateOfThree>
         )
     endif()
 endif()
 
-add_custom_command(TARGET Gate_of_three POST_BUILD
+add_custom_command(TARGET GateOfThree POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
         "${CMAKE_CURRENT_SOURCE_DIR}/Assets"
-        "$<TARGET_FILE_DIR:Gate_of_three>/Assets"
+        "$<TARGET_FILE_DIR:GateOfThree>/Assets"
 )

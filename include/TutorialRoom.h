@@ -1,6 +1,6 @@
 #pragma once
 
-#include "StaticNpc.h"
+#include "Room.h"
 
 #include <SFML/Graphics.hpp>
 
@@ -8,17 +8,15 @@
 #include <string>
 #include <vector>
 
-class TutorialRoom
+class TutorialRoom : public Room
 {
 public:
     TutorialRoom();
 
-    void update(float deltaTime);
-    void draw(sf::RenderTarget& target) const;
+    void update(float deltaTime) override;
+    void draw(sf::RenderTarget& target) const override;
 
-    const std::vector<sf::FloatRect>& getSolidColliders() const;
-    sf::FloatRect getBounds() const;
-    sf::Vector2f getPlayerSpawnFeet() const;
+    sf::Vector2f getPlayerSpawnFeet() const override;
 
 private:
     void loadTextures();
@@ -35,9 +33,6 @@ private:
     static constexpr float lowStepTop_ = mapTop_ + tileSize_ * 3.f;
     static constexpr float plateauTop_ = mapTop_ + tileSize_ * 2.f;
 
-    sf::Vector2f roomSize_ = {2048.f, 900.f};
-    sf::Color skyColor_ = sf::Color(238, 241, 242);
-
     sf::Texture backgroundTexture_;
     std::map<std::string, sf::Texture> textures_;
     bool hasBackground_ = false;
@@ -47,6 +42,4 @@ private:
     std::vector<sf::Sprite> tiles_;
     std::vector<sf::Sprite> decors_;
     std::vector<sf::RectangleShape> fallbackPlatforms_;
-    std::vector<sf::FloatRect> solidColliders_;
-    StaticNpc catNpc_;
 };

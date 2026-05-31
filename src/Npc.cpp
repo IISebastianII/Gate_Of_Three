@@ -1,17 +1,19 @@
-#include "StaticNpc.h"
+#include "Npc.h"
 
 #include "AssetPaths.h"
 
 #include <algorithm>
+#include <utility>
 
-StaticNpc::StaticNpc()
+Npc::Npc()
 {
+    boundsSize_ = {64.f, 64.f};
     loadCatIdle();
     syncPlaceholder();
     syncDrawable();
 }
 
-void StaticNpc::update(float deltaTime)
+void Npc::update(float deltaTime)
 {
     if (frames_.empty())
     {
@@ -28,7 +30,7 @@ void StaticNpc::update(float deltaTime)
     syncDrawable();
 }
 
-void StaticNpc::draw(sf::RenderTarget& target) const
+void Npc::draw(sf::RenderTarget& target) const
 {
     if (!frames_.empty())
     {
@@ -45,21 +47,22 @@ void StaticNpc::draw(sf::RenderTarget& target) const
     target.draw(rightEye_);
 }
 
-void StaticNpc::setFeetPosition(sf::Vector2f feetPosition)
+void Npc::setFeetPosition(sf::Vector2f feetPosition)
 {
     feetPosition_ = feetPosition;
+    position_ = {feetPosition.x - boundsSize_.x * 0.5f, feetPosition.y - boundsSize_.y};
     syncPlaceholder();
     syncDrawable();
 }
 
-bool StaticNpc::loadCatIdle()
+bool Npc::loadCatIdle()
 {
     return loadFramesFromDirectory("Animations/NPC/cat_NPC/Idle")
         || loadFramesFromDirectory("Animations/NPC/cat_NPC/idle")
         || loadFramesFromDirectory("Animations/NPC/cat_NPC");
 }
 
-bool StaticNpc::loadFramesFromDirectory(const std::string& relativeDirectory)
+bool Npc::loadFramesFromDirectory(const std::string& relativeDirectory)
 {
     const std::filesystem::path directory = AssetPaths::resolve(relativeDirectory);
     if (!std::filesystem::exists(directory) || !std::filesystem::is_directory(directory))
@@ -103,7 +106,7 @@ bool StaticNpc::loadFramesFromDirectory(const std::string& relativeDirectory)
     return !frames_.empty();
 }
 
-sf::IntRect StaticNpc::findVisibleBounds(const sf::Image& image) const
+sf::IntRect Npc::findVisibleBounds(const sf::Image& image) const
 {
     const sf::Vector2u size = image.getSize();
     unsigned minX = size.x;
@@ -142,7 +145,7 @@ sf::IntRect StaticNpc::findVisibleBounds(const sf::Image& image) const
     };
 }
 
-void StaticNpc::syncDrawable()
+void Npc::syncDrawable()
 {
     if (frames_.empty())
     {
@@ -159,7 +162,7 @@ void StaticNpc::syncDrawable()
     sprite_.setPosition(feetPosition_.x, feetPosition_.y + 1.f);
 }
 
-void StaticNpc::syncPlaceholder()
+void Npc::syncPlaceholder()
 {
     const sf::Color bodyColor(94, 104, 114);
     const sf::Color darkColor(42, 48, 56);

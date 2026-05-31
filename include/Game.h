@@ -1,9 +1,12 @@
 #pragma once
 
 #include "Player.h"
+#include "Room.h"
 #include "TutorialRoom.h"
 
 #include <SFML/Graphics.hpp>
+
+#include <memory>
 
 class Game
 {
@@ -20,6 +23,6 @@ private:
 
     sf::RenderWindow window_;
     sf::View gameView_;
-    TutorialRoom tutorialRoom_;
+    std::unique_ptr<Room> currentRoom_;
     Player player_;
 };

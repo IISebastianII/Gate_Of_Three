@@ -1,25 +1,29 @@
 #include "TutorialRoom.h"
 
 #include "AssetPaths.h"
+#include "Npc.h"
 
 #include <cmath>
 #include <initializer_list>
 
 TutorialRoom::TutorialRoom()
+    : Room(RoomType::Tutorial)
 {
+    roomSize_ = {2048.f, 900.f};
+    clearColor_ = sf::Color(238, 241, 242);
     loadTextures();
     buildGeometry();
 }
 
 void TutorialRoom::update(float deltaTime)
 {
-    catNpc_.update(deltaTime);
+    Room::update(deltaTime);
 }
 
 void TutorialRoom::draw(sf::RenderTarget& target) const
 {
     sf::RectangleShape sky(roomSize_);
-    sky.setFillColor(skyColor_);
+    sky.setFillColor(clearColor_);
     target.draw(sky);
 
     if (hasBackground_)
@@ -47,17 +51,7 @@ void TutorialRoom::draw(sf::RenderTarget& target) const
         target.draw(decor);
     }
 
-    catNpc_.draw(target);
-}
-
-const std::vector<sf::FloatRect>& TutorialRoom::getSolidColliders() const
-{
-    return solidColliders_;
-}
-
-sf::FloatRect TutorialRoom::getBounds() const
-{
-    return {0.f, 0.f, roomSize_.x, roomSize_.y};
+    Room::draw(target);
 }
 
 sf::Vector2f TutorialRoom::getPlayerSpawnFeet() const
@@ -148,7 +142,8 @@ void TutorialRoom::buildGeometry()
         addSolidTile(x, 1);
     }
 
-    catNpc_.setFeetPosition({tileLeft(6) + tileSize_ * 0.5f, tileTop(1)});
+    Npc& catNpc = addObject<Npc>();
+    catNpc.setFeetPosition({tileLeft(6) + tileSize_ * 0.5f, tileTop(1)});
 
     if (hasBackground_)
     {

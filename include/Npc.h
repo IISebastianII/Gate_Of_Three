@@ -1,17 +1,19 @@
 #pragma once
 
+#include "Entity.h"
+
 #include <SFML/Graphics.hpp>
 
 #include <filesystem>
 #include <vector>
 
-class StaticNpc
+class Npc : public Entity
 {
 public:
-    StaticNpc();
+    Npc();
 
-    void update(float deltaTime);
-    void draw(sf::RenderTarget& target) const;
+    void update(float deltaTime) override;
+    void draw(sf::RenderTarget& target) const override;
     void setFeetPosition(sf::Vector2f feetPosition);
 
 private:
