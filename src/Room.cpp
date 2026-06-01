@@ -28,6 +28,11 @@ void Room::update(float deltaTime)
 
 void Room::draw(sf::RenderTarget& target) const
 {
+    for (const auto& exit : exits_)
+    {
+        exit.draw(target);
+    }
+
     for (const auto& object : objects_)
     {
         object->draw(target);
@@ -54,6 +59,19 @@ const std::vector<sf::FloatRect>& Room::getSolidColliders() const
     return solidColliders_;
 }
 
+const RoomExit* Room::findTouchedExit(const sf::FloatRect& bounds) const
+{
+    for (const auto& exit : exits_)
+    {
+        if (exit.overlaps(bounds))
+        {
+            return &exit;
+        }
+    }
+
+    return nullptr;
+}
+
 void Room::removeDestroyedObjects()
 {
     objects_.erase(
@@ -61,4 +79,10 @@ void Room::removeDestroyedObjects()
             return !object->isAlive();
         }),
         objects_.end());
+}
+
+RoomExit& Room::addExit(RoomType targetRoom, sf::Vector2f targetSpawnFeet, const sf::FloatRect& triggerBounds)
+{
+    exits_.emplace_back(targetRoom, targetSpawnFeet, triggerBounds);
+    return exits_.back();
 }

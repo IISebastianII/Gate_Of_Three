@@ -27,6 +27,8 @@ SOURCES += \
     src/Player.cpp \
     src/Projectile.cpp \
     src/Room.cpp \
+    src/RoomExit.cpp \
+    src/RoomManager.cpp \
     src/Spell.cpp \
     src/TutorialRoom.cpp \
     src/main.cpp
@@ -47,6 +49,8 @@ HEADERS += \
     include/Player.h \
     include/Projectile.h \
     include/Room.h \
+    include/RoomExit.h \
+    include/RoomManager.h \
     include/RoomType.h \
     include/Spell.h \
     include/TutorialRoom.h

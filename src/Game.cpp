@@ -1,7 +1,6 @@
 #include "Game.h"
 
 #include <algorithm>
-#include <memory>
 
 namespace
 {
@@ -18,9 +17,7 @@ Game::Game()
     window_.setVerticalSyncEnabled(true);
     window_.setKeyRepeatEnabled(false);
 
-    currentRoom_ = std::make_unique<TutorialRoom>();
-    currentRoom_->onEnter();
-    player_.setFeetPosition(currentRoom_->getPlayerSpawnFeet());
+    player_.setFeetPosition(roomManager_.getCurrentRoom().getPlayerSpawnFeet());
     updateCamera();
 }
 
@@ -52,14 +49,27 @@ void Game::processEvents()
             window_.close();
         }
 
+        if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::E)
+        {
+            Room& room = roomManager_.getCurrentRoom();
+            if (const RoomExit* exit = room.findTouchedExit(player_.getBounds()))
+            {
+                const RoomType targetRoom = exit->getTargetRoom();
+                const sf::Vector2f targetSpawnFeet = exit->getTargetSpawnFeet();
+                roomManager_.changeRoom(targetRoom);
+                player_.setFeetPosition(targetSpawnFeet);
+            }
+        }
+
         player_.handleEvent(event);
     }
 }
 
 void Game::update(float deltaTime)
 {
-    currentRoom_->update(deltaTime);
-    player_.update(deltaTime, currentRoom_->getSolidColliders(), currentRoom_->getBounds());
+    Room& room = roomManager_.getCurrentRoom();
+    room.update(deltaTime);
+    player_.update(deltaTime, room.getSolidColliders(), room.getBounds());
     updateCamera();
 }
 
@@ -68,7 +78,7 @@ void Game::render()
     window_.clear(sf::Color(126, 184, 208));
     window_.setView(gameView_);
 
-    currentRoom_->draw(window_);
+    roomManager_.getCurrentRoom().draw(window_);
     player_.draw(window_);
 
     window_.display();
@@ -76,7 +86,7 @@ void Game::render()
 
 void Game::updateCamera()
 {
-    const sf::FloatRect roomBounds = currentRoom_->getBounds();
+    const sf::FloatRect roomBounds = roomManager_.getCurrentRoom().getBounds();
     const sf::Vector2f halfView = gameView_.getSize() * 0.5f;
     const sf::Vector2f playerCenter = player_.getCenter();
 

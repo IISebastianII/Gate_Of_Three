@@ -148,11 +148,13 @@ void TutorialRoom::buildGeometry()
     if (hasBackground_)
     {
         const auto textureSize = backgroundTexture_.getSize();
-        const float scale = roomSize_.x / static_cast<float>(textureSize.x);
+        const float scaleX = roomSize_.x / static_cast<float>(textureSize.x);
+        const float scaleY = roomSize_.y / static_cast<float>(textureSize.y);
+        const float scale = std::max(scaleX, scaleY);
         background_.setTexture(backgroundTexture_);
         background_.setScale(scale, scale);
         background_.setColor(sf::Color::White);
-        background_.setPosition(0.f, baseGroundTop_ - static_cast<float>(textureSize.y) * scale + 4.f);
+        background_.setPosition((roomSize_.x - static_cast<float>(textureSize.x) * scale) * 0.5f, 0.f);
     }
 
     if (hasTiles_)
@@ -196,7 +198,16 @@ void TutorialRoom::buildGeometry()
         addSprite("tent", {tileLeft(14) + tileSize_ * 1.5f, tileTop(3)}, tileScale_);
         addSprite("largeRocks", {tileLeft(20) + tileSize_ * 1.5f, tileTop(1)}, tileScale_);
         addSprite("bush", {tileLeft(25) + tileSize_ * 0.5f, tileTop(1)}, tileScale_);
-        addSprite("sign", {tileLeft(31) + tileSize_ * 0.5f, tileTop(1)}, tileScale_);
+
+        RoomExit& battleExit = addExit(
+            RoomType::Battle,
+            {160.f, 772.f},
+            {tileLeft(30), tileTop(1) - tileSize_, tileSize_ * 3.f, tileSize_ * 2.f});
+        const auto signTexture = textures_.find("sign");
+        if (signTexture != textures_.end())
+        {
+            battleExit.setTexture(signTexture->second, {tileLeft(31) + tileSize_ * 0.5f, tileTop(1)}, tileScale_);
+        }
         return;
     }
 

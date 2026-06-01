@@ -2,6 +2,7 @@
 
 #include "Player.h"
 #include "Room.h"
+#include "RoomManager.h"
 #include "TutorialRoom.h"
 
 #include <SFML/Graphics.hpp>
@@ -23,6 +24,6 @@ private:
 
     sf::RenderWindow window_;
     sf::View gameView_;
-    std::unique_ptr<Room> currentRoom_;
+    RoomManager roomManager_;
     Player player_;
 };

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "GameObject.h"
+#include "RoomExit.h"
 #include "RoomType.h"
 
 #include <SFML/Graphics.hpp>
@@ -24,6 +25,7 @@ public:
     virtual sf::Vector2f getPlayerSpawnFeet() const;
 
     const std::vector<sf::FloatRect>& getSolidColliders() const;
+    const RoomExit* findTouchedExit(const sf::FloatRect& bounds) const;
 
 protected:
     template <typename ObjectType, typename... Args>
@@ -36,10 +38,12 @@ protected:
     }
 
     void removeDestroyedObjects();
+    RoomExit& addExit(RoomType targetRoom, sf::Vector2f targetSpawnFeet, const sf::FloatRect& triggerBounds);
 
     RoomType type_;
     sf::Vector2f roomSize_ = {1280.f, 720.f};
     sf::Color clearColor_ = sf::Color(126, 184, 208);
     std::vector<sf::FloatRect> solidColliders_;
     std::vector<std::unique_ptr<GameObject>> objects_;
+    std::vector<RoomExit> exits_;
 };
