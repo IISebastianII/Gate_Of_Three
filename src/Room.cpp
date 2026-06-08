@@ -26,6 +26,16 @@ void Room::update(float deltaTime)
     removeDestroyedObjects();
 }
 
+void Room::update(float deltaTime, Player& player)
+{
+    for (auto& object : objects_)
+    {
+        object->update(deltaTime, player, solidColliders_);
+    }
+
+    removeDestroyedObjects();
+}
+
 void Room::draw(sf::RenderTarget& target) const
 {
     for (const auto& exit : exits_)

@@ -13,17 +13,23 @@ class Player : public Entity
 public:
     Player();
 
+    using Entity::update;
+
     void handleEvent(const sf::Event& event);
     void update(float deltaTime) override;
     void update(float deltaTime, const std::vector<sf::FloatRect>& solidColliders, const sf::FloatRect& worldBounds);
     void draw(sf::RenderTarget& target) const override;
+    void receiveDamage(int damage, sf::Vector2f sourcePosition) override;
 
     void setFeetPosition(sf::Vector2f feetPosition);
     sf::Vector2f getCenter() const;
     sf::FloatRect getBounds() const override;
     sf::FloatRect getAttackBounds() const;
     bool isAttackActive() const;
+    bool isDodging() const;
     int getAttackDamage() const;
+    int getHealth() const;
+    int getMaxHealth() const;
 
 private:
     enum class AnimationState
@@ -68,8 +74,11 @@ private:
     static constexpr float gravity_ = 1850.f;
     static constexpr float maxStepHeight_ = 36.f;
     static constexpr float textureScale_ = 3.f;
+    static constexpr float damageInvulnerabilityDuration_ = 0.85f;
+    static constexpr int maxHealth_ = 5;
     static const sf::Vector2f colliderSize_;
 
+    int health_ = maxHealth_;
     bool facingRight_ = true;
     bool onGround_ = false;
     bool jumpQueued_ = false;
@@ -81,6 +90,7 @@ private:
     float attackDuration_ = 0.f;
     float slideTimer_ = 0.f;
     float slideDirection_ = 1.f;
+    float damageInvulnerabilityTimer_ = 0.f;
 
     std::map<AnimationState, Animation> animations_;
     AnimationState currentState_ = AnimationState::Idle;

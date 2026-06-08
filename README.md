@@ -152,19 +152,24 @@ Zaimplementowano:
 
 Po tym etapie gracz może przejść do battle roomu, zaatakować skeletona, zmniejszyć jego HP i pokonać go.
 
-## Plan dalszego rozwoju
+## Milestone 5 - AI przeciwników i rozwój battle roomu
 
-Kolejne milestone'y będą rozwijały właściwą rozgrywkę. W planie są między innymi:
+Piąty etap rozbudował walkę o podstawowe AI przeciwników oraz bardziej grywalny układ battle roomu.
 
-- AI przeciwników
-- ataki przeciwników
-- obrażenia i punkty życia
-- skrzynie
-- zaklęcia
-- system many
-- pokoje specjalne
-- boss room
-- HUD
-- zapis gry
+Zaimplementowano:
 
-Projekt jest rozwijany stopniowo, aby każda większa mechanika była dodawana na stabilnym fundamencie.
+- podstawowe AI przeciwnika `skeleton`
+- patrolowanie obszaru przez przeciwnika
+- wykrywanie gracza w określonym zasięgu
+- podchodzenie przeciwnika do gracza
+- atak melee przeciwnika
+- zadawanie obrażeń graczowi
+- punkty życia gracza
+- krótką niewrażliwość gracza po otrzymaniu obrażeń
+- slide pod `LAlt` jako unik przed obrażeniami
+- feedback obrażeń gracza przez zmianę koloru postaci
+- trzech przeciwników w `BattleRoom`
+- przebudowany przykładowy layout `BattleRoom`
+- naziemne stopnie i zróżnicowanie wysokości terenu
+- dekoracje w battle roomie
+- większy rozmiar battle roomu.

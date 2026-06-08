@@ -4,6 +4,11 @@ void GameObject::update(float)
 {
 }
 
+void GameObject::update(float deltaTime, Player&, const std::vector<sf::FloatRect>&)
+{
+    update(deltaTime);
+}
+
 sf::FloatRect GameObject::getBounds() const
 {
     return {};

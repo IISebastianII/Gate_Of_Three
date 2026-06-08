@@ -1,8 +1,10 @@
 #include "Enemy.h"
 
 #include "AssetPaths.h"
+#include "Player.h"
 
 #include <algorithm>
+#include <cmath>
 #include <iomanip>
 #include <sstream>
 
@@ -22,6 +24,7 @@ Enemy::Enemy(sf::Vector2f feetPosition, const std::string& animationRoot)
 {
     boundsSize_ = colliderSize_;
     position_ = {feetPosition.x - colliderSize_.x * 0.5f, feetPosition.y - colliderSize_.y};
+    spawnFeetX_ = feetPosition.x;
 
     debugShape_.setSize(colliderSize_);
     debugShape_.setFillColor(sf::Color(120, 70, 80));
@@ -33,6 +36,12 @@ Enemy::Enemy(sf::Vector2f feetPosition, const std::string& animationRoot)
 }
 
 void Enemy::update(float deltaTime)
+{
+    updateAnimation(deltaTime);
+    syncDrawable();
+}
+
+void Enemy::update(float deltaTime, Player& player, const std::vector<sf::FloatRect>& solidColliders)
 {
     if (damageCooldown_ > 0.f)
     {
@@ -47,6 +56,36 @@ void Enemy::update(float deltaTime)
             destroy();
             return;
         }
+    }
+    else
+    {
+        updateAi(deltaTime, player);
+        moveHorizontally(deltaTime, solidColliders);
+        moveVertically(deltaTime, solidColliders);
+        tryHitPlayer(player);
+    }
+
+    if (attackCooldown_ > 0.f)
+    {
+        attackCooldown_ = std::max(0.f, attackCooldown_ - deltaTime);
+    }
+
+    if (attacking_)
+    {
+        attackTimer_ -= deltaTime;
+        if (attackTimer_ <= 0.f)
+        {
+            attacking_ = false;
+            attackTimer_ = 0.f;
+            attackDuration_ = 0.f;
+            attackHitDone_ = false;
+            attackCooldown_ = attackCooldownDuration_;
+        }
+    }
+
+    if (dying_)
+    {
+        velocity_.x = 0.f;
     }
     else if (currentState_ == AnimationState::Hurt && damageCooldown_ <= 0.1f)
     {
@@ -84,6 +123,10 @@ void Enemy::receiveDamage(int damage, sf::Vector2f sourcePosition)
     health_ -= damage;
     facingRight_ = sourcePosition.x > getBounds().left + getBounds().width * 0.5f;
     damageCooldown_ = 0.42f;
+    attacking_ = false;
+    attackTimer_ = 0.f;
+    attackDuration_ = 0.f;
+    attackHitDone_ = false;
 
     if (health_ <= 0)
     {
@@ -102,6 +145,8 @@ void Enemy::receiveDamage(int damage, sf::Vector2f sourcePosition)
 void Enemy::loadAnimations(const std::string& animationRoot)
 {
     loadFrameSeries(AnimationState::Idle, animationRoot + "/idle", 0, 7, 0.12f, true);
+    loadFrameSeries(AnimationState::Walk, animationRoot + "/walk", 0, 9, 0.09f, true);
+    loadFrameSeries(AnimationState::Attack, animationRoot + "/atack", 0, 9, 0.065f, false);
     loadFrameSeries(AnimationState::Hurt, animationRoot + "/hurt", 0, 4, 0.08f, false);
     loadFrameSeries(AnimationState::Dead, animationRoot + "/die", 0, 12, 0.09f, false);
 }
@@ -128,6 +173,159 @@ void Enemy::loadFrameSeries(AnimationState state, const std::string& directory, 
     if (!animation.frames.empty())
     {
         animations_[state] = std::move(animation);
+    }
+}
+
+void Enemy::updateAi(float, Player& player)
+{
+    if (currentState_ == AnimationState::Hurt)
+    {
+        velocity_.x = 0.f;
+        return;
+    }
+
+    const sf::Vector2f playerCenter = player.getCenter();
+    const sf::Vector2f enemyCenter = getCenter();
+    const float distanceX = playerCenter.x - enemyCenter.x;
+    const float distanceY = std::abs(playerCenter.y - enemyCenter.y);
+
+    if (attacking_)
+    {
+        velocity_.x = 0.f;
+        setAnimationState(AnimationState::Attack);
+        return;
+    }
+
+    if (std::abs(distanceX) <= attackRange_ && distanceY <= attackHeight_ && attackCooldown_ <= 0.f)
+    {
+        attacking_ = true;
+        attackHitDone_ = false;
+        attackDuration_ = animationDuration(AnimationState::Attack, 0.55f);
+        attackTimer_ = attackDuration_;
+        facingRight_ = distanceX > 0.f;
+        velocity_.x = 0.f;
+        setAnimationState(AnimationState::Attack);
+        return;
+    }
+
+    if (std::abs(distanceX) <= detectionRange_ && distanceY <= 120.f)
+    {
+        facingRight_ = distanceX > 0.f;
+        velocity_.x = facingRight_ ? chaseSpeed_ : -chaseSpeed_;
+        setAnimationState(AnimationState::Walk);
+        return;
+    }
+
+    const float feetX = position_.x + colliderSize_.x * 0.5f;
+    if (feetX < spawnFeetX_ - patrolRange_)
+    {
+        patrolDirection_ = 1.f;
+    }
+    else if (feetX > spawnFeetX_ + patrolRange_)
+    {
+        patrolDirection_ = -1.f;
+    }
+
+    facingRight_ = patrolDirection_ > 0.f;
+    velocity_.x = patrolDirection_ * patrolSpeed_;
+    setAnimationState(AnimationState::Walk);
+}
+
+void Enemy::moveHorizontally(float deltaTime, const std::vector<sf::FloatRect>& solidColliders)
+{
+    position_.x += velocity_.x * deltaTime;
+    sf::FloatRect bounds = getBounds();
+
+    for (const auto& solid : solidColliders)
+    {
+        if (!bounds.intersects(solid))
+        {
+            continue;
+        }
+
+        if (velocity_.x > 0.f)
+        {
+            position_.x = solid.left - colliderSize_.x;
+            patrolDirection_ = -1.f;
+        }
+        else if (velocity_.x < 0.f)
+        {
+            position_.x = solid.left + solid.width;
+            patrolDirection_ = 1.f;
+        }
+
+        velocity_.x = 0.f;
+        bounds = getBounds();
+    }
+}
+
+void Enemy::moveVertically(float deltaTime, const std::vector<sf::FloatRect>& solidColliders)
+{
+    velocity_.y += gravity_ * deltaTime;
+    position_.y += velocity_.y * deltaTime;
+    onGround_ = false;
+
+    sf::FloatRect bounds = getBounds();
+    for (const auto& solid : solidColliders)
+    {
+        if (!bounds.intersects(solid))
+        {
+            continue;
+        }
+
+        if (velocity_.y > 0.f)
+        {
+            position_.y = solid.top - colliderSize_.y;
+            onGround_ = true;
+        }
+        else if (velocity_.y < 0.f)
+        {
+            position_.y = solid.top + solid.height;
+        }
+
+        velocity_.y = 0.f;
+        bounds = getBounds();
+    }
+}
+
+sf::Vector2f Enemy::getCenter() const
+{
+    return {position_.x + colliderSize_.x * 0.5f, position_.y + colliderSize_.y * 0.5f};
+}
+
+sf::FloatRect Enemy::getAttackBounds() const
+{
+    const float top = position_.y + (colliderSize_.y - attackHeight_) * 0.5f;
+    if (facingRight_)
+    {
+        return {position_.x + colliderSize_.x, top, attackRange_, attackHeight_};
+    }
+
+    return {position_.x - attackRange_, top, attackRange_, attackHeight_};
+}
+
+bool Enemy::isAttackActive() const
+{
+    if (!attacking_ || attackDuration_ <= 0.f)
+    {
+        return false;
+    }
+
+    const float elapsed = attackDuration_ - attackTimer_;
+    return elapsed >= attackActiveStart_ && elapsed <= attackActiveEnd_;
+}
+
+void Enemy::tryHitPlayer(Player& player)
+{
+    if (attackHitDone_ || !isAttackActive())
+    {
+        return;
+    }
+
+    if (getAttackBounds().intersects(player.getBounds()))
+    {
+        player.receiveDamage(attackDamage_, getCenter());
+        attackHitDone_ = true;
     }
 }
 
@@ -175,6 +373,17 @@ const Enemy::Animation* Enemy::currentAnimation() const
     }
 
     return &found->second;
+}
+
+float Enemy::animationDuration(AnimationState state, float fallbackDuration) const
+{
+    const auto found = animations_.find(state);
+    if (found == animations_.end() || found->second.frames.empty())
+    {
+        return fallbackDuration;
+    }
+
+    return static_cast<float>(found->second.frames.size()) * found->second.frameTime;
 }
 
 void Enemy::syncDrawable()

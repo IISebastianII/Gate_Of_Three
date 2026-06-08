@@ -21,6 +21,7 @@ private:
     void buildGeometry();
     void loadTexture(const std::string& id, const std::string& relativePath);
     void addTile(const std::string& textureId, int column, int row);
+    void addSprite(const std::string& textureId, sf::Vector2f bottomCenter, float scale);
 
     static constexpr float tileScale_ = 2.f;
     static constexpr float tileSize_ = 64.f;
@@ -33,5 +34,6 @@ private:
 
     sf::Sprite background_;
     std::vector<sf::Sprite> tiles_;
+    std::vector<sf::Sprite> decors_;
     std::vector<sf::RectangleShape> fallbackPlatforms_;
 };

@@ -75,6 +75,25 @@ void Player::draw(sf::RenderTarget& target) const
     }
 }
 
+void Player::receiveDamage(int damage, sf::Vector2f sourcePosition)
+{
+    if (damageInvulnerabilityTimer_ > 0.f || isDodging())
+    {
+        return;
+    }
+
+    health_ = std::max(0, health_ - damage);
+    damageInvulnerabilityTimer_ = damageInvulnerabilityDuration_;
+
+    const float knockbackDirection = getCenter().x < sourcePosition.x ? -1.f : 1.f;
+    velocity_.x = knockbackDirection * 260.f;
+    if (onGround_)
+    {
+        velocity_.y = -220.f;
+        onGround_ = false;
+    }
+}
+
 void Player::setFeetPosition(sf::Vector2f feetPosition)
 {
     position_.x = feetPosition.x - colliderSize_.x * 0.5f;
@@ -87,7 +106,9 @@ void Player::setFeetPosition(sf::Vector2f feetPosition)
     attacking_ = false;
     sliding_ = false;
     attackTimer_ = 0.f;
+    attackDuration_ = 0.f;
     slideTimer_ = 0.f;
+    damageInvulnerabilityTimer_ = 0.f;
     syncDrawable();
 }
 
@@ -123,9 +144,24 @@ bool Player::isAttackActive() const
     return elapsed >= attackActiveStart_ && elapsed <= attackActiveEnd_;
 }
 
+bool Player::isDodging() const
+{
+    return sliding_;
+}
+
 int Player::getAttackDamage() const
 {
     return attackDamage_;
+}
+
+int Player::getHealth() const
+{
+    return health_;
+}
+
+int Player::getMaxHealth() const
+{
+    return maxHealth_;
 }
 
 void Player::loadAnimations()
@@ -307,6 +343,11 @@ void Player::keepInsideWorld(const sf::FloatRect& worldBounds)
 
 void Player::updateActionTimers(float deltaTime)
 {
+    if (damageInvulnerabilityTimer_ > 0.f)
+    {
+        damageInvulnerabilityTimer_ = std::max(0.f, damageInvulnerabilityTimer_ - deltaTime);
+    }
+
     if (attacking_)
     {
         attackTimer_ -= deltaTime;
@@ -419,6 +460,14 @@ void Player::syncDrawable()
 
     const sf::Texture& texture = animation->frames[std::min(currentFrame_, animation->frames.size() - 1)];
     sprite_.setTexture(texture, true);
+    if (damageInvulnerabilityTimer_ > 0.f)
+    {
+        sprite_.setColor(sf::Color(255, 120, 120));
+    }
+    else
+    {
+        sprite_.setColor(sf::Color::White);
+    }
     sprite_.setOrigin(static_cast<float>(texture.getSize().x) * 0.5f, static_cast<float>(texture.getSize().y));
     sprite_.setPosition(position_.x + colliderSize_.x * 0.5f, position_.y + colliderSize_.y + 1.f);
     sprite_.setScale(facingRight_ ? textureScale_ : -textureScale_, textureScale_);

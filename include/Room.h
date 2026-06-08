@@ -9,6 +9,8 @@
 #include <memory>
 #include <vector>
 
+class Player;
+
 class Room
 {
 public:
@@ -18,6 +20,7 @@ public:
     virtual void onEnter();
     virtual void onExit();
     virtual void update(float deltaTime);
+    virtual void update(float deltaTime, Player& player);
     virtual void draw(sf::RenderTarget& target) const;
 
     RoomType getType() const;
