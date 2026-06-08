@@ -21,6 +21,9 @@ public:
     void setFeetPosition(sf::Vector2f feetPosition);
     sf::Vector2f getCenter() const;
     sf::FloatRect getBounds() const override;
+    sf::FloatRect getAttackBounds() const;
+    bool isAttackActive() const;
+    int getAttackDamage() const;
 
 private:
     enum class AnimationState
@@ -56,6 +59,11 @@ private:
     static constexpr float moveSpeed_ = 300.f;
     static constexpr float slideSpeed_ = 580.f;
     static constexpr float slideDuration_ = 0.36f;
+    static constexpr float attackActiveStart_ = 0.16f;
+    static constexpr float attackActiveEnd_ = 0.38f;
+    static constexpr float attackRange_ = 76.f;
+    static constexpr float attackHeight_ = 68.f;
+    static constexpr int attackDamage_ = 1;
     static constexpr float jumpVelocity_ = -820.f;
     static constexpr float gravity_ = 1850.f;
     static constexpr float maxStepHeight_ = 36.f;
@@ -70,6 +78,7 @@ private:
     bool attacking_ = false;
     bool sliding_ = false;
     float attackTimer_ = 0.f;
+    float attackDuration_ = 0.f;
     float slideTimer_ = 0.f;
     float slideDirection_ = 1.f;
 

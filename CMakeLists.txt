@@ -28,6 +28,7 @@ add_executable(GateOfThree
     src/Npc.cpp
     src/Player.cpp
     src/Projectile.cpp
+    src/RadialHealthIndicator.cpp
     src/Room.cpp
     src/RoomExit.cpp
     src/RoomManager.cpp
@@ -47,6 +48,7 @@ add_executable(GateOfThree
     include/Npc.h
     include/Player.h
     include/Projectile.h
+    include/RadialHealthIndicator.h
     include/Room.h
     include/RoomExit.h
     include/RoomManager.h

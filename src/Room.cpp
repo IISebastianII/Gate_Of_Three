@@ -72,6 +72,17 @@ const RoomExit* Room::findTouchedExit(const sf::FloatRect& bounds) const
     return nullptr;
 }
 
+void Room::damageObjectsInBounds(const sf::FloatRect& damageBounds, int damage, sf::Vector2f sourcePosition)
+{
+    for (auto& object : objects_)
+    {
+        if (object->isAlive() && damageBounds.intersects(object->getBounds()))
+        {
+            object->receiveDamage(damage, sourcePosition);
+        }
+    }
+}
+
 void Room::removeDestroyedObjects()
 {
     objects_.erase(

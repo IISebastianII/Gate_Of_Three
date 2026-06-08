@@ -101,6 +101,33 @@ sf::FloatRect Player::getBounds() const
     return {position_, colliderSize_};
 }
 
+sf::FloatRect Player::getAttackBounds() const
+{
+    const float top = position_.y + (colliderSize_.y - attackHeight_) * 0.5f;
+    if (facingRight_)
+    {
+        return {position_.x + colliderSize_.x, top, attackRange_, attackHeight_};
+    }
+
+    return {position_.x - attackRange_, top, attackRange_, attackHeight_};
+}
+
+bool Player::isAttackActive() const
+{
+    if (!attacking_ || attackDuration_ <= 0.f)
+    {
+        return false;
+    }
+
+    const float elapsed = attackDuration_ - attackTimer_;
+    return elapsed >= attackActiveStart_ && elapsed <= attackActiveEnd_;
+}
+
+int Player::getAttackDamage() const
+{
+    return attackDamage_;
+}
+
 void Player::loadAnimations()
 {
     loadFrameSeries(AnimationState::Idle, "Animations/Player/idle", "Warrior_Idle_", 1, 6, 0.14f, true);
@@ -141,7 +168,8 @@ void Player::applyInput()
     if (attackQueued_ && !attacking_ && !sliding_)
     {
         attacking_ = true;
-        attackTimer_ = animationDuration(AnimationState::Attack, 0.45f);
+        attackDuration_ = animationDuration(AnimationState::Attack, 0.45f);
+        attackTimer_ = attackDuration_;
         setAnimationState(AnimationState::Attack);
     }
 
@@ -286,6 +314,7 @@ void Player::updateActionTimers(float deltaTime)
         {
             attacking_ = false;
             attackTimer_ = 0.f;
+            attackDuration_ = 0.f;
         }
     }
 

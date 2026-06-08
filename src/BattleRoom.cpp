@@ -1,6 +1,7 @@
 #include "BattleRoom.h"
 
 #include "AssetPaths.h"
+#include "Enemy.h"
 
 BattleRoom::BattleRoom()
     : Room(RoomType::Battle)
@@ -100,6 +101,8 @@ void BattleRoom::buildGeometry()
     {
         tutorialExit.setTexture(signTexture->second, {tileSize_ * 1.5f, groundTop_}, tileScale_);
     }
+
+    addObject<Enemy>(sf::Vector2f{720.f, groundTop_});
 }
 
 void BattleRoom::loadTexture(const std::string& id, const std::string& relativePath)

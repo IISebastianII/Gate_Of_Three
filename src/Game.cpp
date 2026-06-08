@@ -70,6 +70,10 @@ void Game::update(float deltaTime)
     Room& room = roomManager_.getCurrentRoom();
     room.update(deltaTime);
     player_.update(deltaTime, room.getSolidColliders(), room.getBounds());
+    if (player_.isAttackActive())
+    {
+        room.damageObjectsInBounds(player_.getAttackBounds(), player_.getAttackDamage(), player_.getCenter());
+    }
     updateCamera();
 }
 

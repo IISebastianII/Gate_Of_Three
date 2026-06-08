@@ -37,15 +37,15 @@ Jeżeli SFML jest zainstalowany w innym miejscu, trzeba zmienić ścieżkę w ko
 - `D` / `Right` - ruch w prawo
 - `W` / `Up` - skok
 - `Space` - atak
-- `R` - slide
+- `LAlt` - slide
 - `E` - interakcja z przejściem przy znaku
 - `Esc` - zamknięcie gry
 
 ## Obecny stan gry
 
-W aktualnej wersji gracz może poruszać się po pokoju tutorialowym, skakać, korzystać z podstawowych akcji postaci oraz przechodzić do drugiego pokoju przez interakcję ze znakiem. Drugi pokój pełni na razie rolę prostego battle roomu testowego, który sprawdza działanie systemu pokojów i przejść.
+W aktualnej wersji gracz może poruszać się po pokoju tutorialowym, skakać, korzystać z podstawowych akcji postaci oraz przechodzić do drugiego pokoju przez interakcję ze znakiem. Drugi pokój pełni rolę prostego battle roomu testowego, w którym znajduje się pierwszy przeciwnik.
 
-Projekt nie zawiera jeszcze pełnego systemu walki, przeciwników, many, bossów, skrzyń ani zapisu gry. Te elementy są przewidziane na kolejne etapy.
+Projekt zawiera już podstawowy system walki gracza oraz pierwszego przeciwnika z HP i animacjami reakcji na obrażenia. Rozbudowane AI, ataki przeciwników, mana, bossowie, skrzynie i zapis gry są przewidziane na kolejne etapy.
 
 ## Struktura projektu
 
@@ -130,12 +130,34 @@ Zaimplementowano:
 
 Po tym etapie gracz może wejść w interakcję ze znakiem, zmienić pokój i wrócić do poprzedniej lokacji.
 
+## Milestone 4 - podstawowy system walki
+
+Czwarty etap dodał pierwszy działający system walki oraz przeciwnika testowego w battle roomie.
+
+Zaimplementowano:
+
+- atak gracza pod `Space`
+- hitbox ataku przed graczem
+- pierwszego przeciwnika `skeleton` w `BattleRoom`
+- punkty życia przeciwnika
+- animację `idle` przeciwnika
+- animację otrzymywania obrażeń `hurt`
+- animację śmierci `die`
+- usuwanie przeciwnika po zakończeniu animacji śmierci
+- krótką niewrażliwość przeciwnika po trafieniu
+- radialny wskaźnik HP przeciwnika
+- czerwone koło aktualnego HP i szary fragment utraconego HP
+- czarną obręcz wskaźnika HP
+- klasę `RadialHealthIndicator`
+
+Po tym etapie gracz może przejść do battle roomu, zaatakować skeletona, zmniejszyć jego HP i pokonać go.
+
 ## Plan dalszego rozwoju
 
 Kolejne milestone'y będą rozwijały właściwą rozgrywkę. W planie są między innymi:
 
-- podstawowy system walki
-- przeciwnicy
+- AI przeciwników
+- ataki przeciwników
 - obrażenia i punkty życia
 - skrzynie
 - zaklęcia
