@@ -28,6 +28,11 @@ void Player::update(float deltaTime)
 
 void Player::handleEvent(const sf::Event& event)
 {
+    if (dead_)
+    {
+        return;
+    }
+
     if (event.type != sf::Event::KeyPressed)
     {
         return;
@@ -54,6 +59,16 @@ void Player::handleEvent(const sf::Event& event)
 
 void Player::update(float deltaTime, const std::vector<sf::FloatRect>& solidColliders, const sf::FloatRect& worldBounds)
 {
+    if (dead_)
+    {
+        velocity_.x = 0.f;
+        moveVertically(deltaTime, solidColliders);
+        keepInsideWorld(worldBounds);
+        updateAnimation(deltaTime);
+        syncDrawable();
+        return;
+    }
+
     applyInput();
     moveHorizontally(deltaTime, solidColliders);
     moveVertically(deltaTime, solidColliders);
@@ -77,12 +92,18 @@ void Player::draw(sf::RenderTarget& target) const
 
 void Player::receiveDamage(int damage, sf::Vector2f sourcePosition)
 {
-    if (damageInvulnerabilityTimer_ > 0.f || isDodging())
+    if (dead_ || damageInvulnerabilityTimer_ > 0.f || isDodging())
     {
         return;
     }
 
     health_ = std::max(0, health_ - damage);
+    if (health_ == 0)
+    {
+        startDeath();
+        return;
+    }
+
     damageInvulnerabilityTimer_ = damageInvulnerabilityDuration_;
 
     const float knockbackDirection = getCenter().x < sourcePosition.x ? -1.f : 1.f;
@@ -105,6 +126,7 @@ void Player::setFeetPosition(sf::Vector2f feetPosition)
     slideQueued_ = false;
     attacking_ = false;
     sliding_ = false;
+    dead_ = false;
     attackTimer_ = 0.f;
     attackDuration_ = 0.f;
     slideTimer_ = 0.f;
@@ -149,6 +171,11 @@ bool Player::isDodging() const
     return sliding_;
 }
 
+bool Player::isDead() const
+{
+    return dead_;
+}
+
 int Player::getAttackDamage() const
 {
     return attackDamage_;
@@ -172,6 +199,7 @@ void Player::loadAnimations()
     loadFrameSeries(AnimationState::Fall, "Animations/Player/Fall", "Warrior_Fall_", 1, 3, 0.10f, true);
     loadFrameSeries(AnimationState::Attack, "Animations/Player/Attack", "Warrior_Attack_", 1, 12, 0.055f, false);
     loadFrameSeries(AnimationState::Slide, "Animations/Player/Slide", "Warrior-Slide_", 1, 5, 0.07f, false);
+    loadFrameSeries(AnimationState::Death, "Animations/Player/Death-Effect", "Warrior_Death_", 1, 11, 0.08f, false);
 }
 
 void Player::loadFrameSeries(AnimationState state, const std::string& directory, const std::string& prefix, int first, int last, float frameTime, bool loop)
@@ -372,7 +400,11 @@ void Player::updateActionTimers(float deltaTime)
 
 void Player::updateAnimation(float deltaTime)
 {
-    if (sliding_)
+    if (dead_)
+    {
+        setAnimationState(AnimationState::Death);
+    }
+    else if (sliding_)
     {
         setAnimationState(AnimationState::Slide);
     }
@@ -424,6 +456,22 @@ void Player::setAnimationState(AnimationState state)
     currentState_ = state;
     currentFrame_ = 0;
     animationAccumulator_ = 0.f;
+}
+
+void Player::startDeath()
+{
+    dead_ = true;
+    attacking_ = false;
+    sliding_ = false;
+    jumpQueued_ = false;
+    attackQueued_ = false;
+    slideQueued_ = false;
+    attackTimer_ = 0.f;
+    attackDuration_ = 0.f;
+    slideTimer_ = 0.f;
+    damageInvulnerabilityTimer_ = 0.f;
+    velocity_.x = 0.f;
+    setAnimationState(AnimationState::Death);
 }
 
 const Player::Animation* Player::currentAnimation() const

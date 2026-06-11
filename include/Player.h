@@ -27,6 +27,7 @@ public:
     sf::FloatRect getAttackBounds() const;
     bool isAttackActive() const;
     bool isDodging() const;
+    bool isDead() const;
     int getAttackDamage() const;
     int getHealth() const;
     int getMaxHealth() const;
@@ -39,7 +40,8 @@ private:
         Jump,
         Fall,
         Attack,
-        Slide
+        Slide,
+        Death
     };
 
     struct Animation
@@ -58,6 +60,7 @@ private:
     void updateActionTimers(float deltaTime);
     void updateAnimation(float deltaTime);
     void setAnimationState(AnimationState state);
+    void startDeath();
     const Animation* currentAnimation() const;
     float animationDuration(AnimationState state, float fallbackDuration) const;
     void syncDrawable();
@@ -86,6 +89,7 @@ private:
     bool slideQueued_ = false;
     bool attacking_ = false;
     bool sliding_ = false;
+    bool dead_ = false;
     float attackTimer_ = 0.f;
     float attackDuration_ = 0.f;
     float slideTimer_ = 0.f;
