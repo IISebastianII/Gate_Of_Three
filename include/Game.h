@@ -30,5 +30,8 @@ private:
     RoomManager roomManager_;
     Player player_;
     sf::Font gameOverFont_;
+    sf::Texture longBlastIconTexture_;
+    sf::Sprite longBlastIconSprite_;
     bool hasGameOverFont_ = false;
+    bool hasLongBlastIcon_ = false;
 };

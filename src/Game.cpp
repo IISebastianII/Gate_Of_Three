@@ -1,5 +1,7 @@
 #include "Game.h"
 
+#include "AssetPaths.h"
+
 #include <algorithm>
 
 namespace
@@ -11,6 +13,8 @@ constexpr float healthBarWidth = 220.f;
 constexpr float healthBarHeight = 12.f;
 constexpr float healthBarPadding = 24.f;
 constexpr float manaBarGap = 6.f;
+constexpr float iconGap = 14.f;
+constexpr float iconFramePadding = 3.f;
 constexpr float retryButtonWidth = 320.f;
 constexpr float retryButtonHeight = 56.f;
 }
@@ -25,6 +29,12 @@ Game::Game()
 
     player_.setFeetPosition(roomManager_.getCurrentRoom().getPlayerSpawnFeet());
     hasGameOverFont_ = gameOverFont_.loadFromFile("C:/Windows/Fonts/arial.ttf");
+    hasLongBlastIcon_ = longBlastIconTexture_.loadFromFile(AssetPaths::resolve("long_blast_icon.png").string());
+    if (hasLongBlastIcon_)
+    {
+        longBlastIconTexture_.setSmooth(false);
+        longBlastIconSprite_.setTexture(longBlastIconTexture_);
+    }
     updateCamera();
 }
 
@@ -140,6 +150,34 @@ void Game::renderHud()
 
     drawBar(healthBarPadding, healthRatio, sf::Color(190, 35, 42));
     drawBar(healthBarPadding + healthBarHeight + manaBarGap, manaRatio, sf::Color(150, 110, 255));
+
+    if (hasLongBlastIcon_)
+    {
+        const sf::Vector2u textureSize = longBlastIconTexture_.getSize();
+        if (textureSize.x > 0 && textureSize.y > 0)
+        {
+            const float iconHeight = healthBarHeight * 2.f + manaBarGap + 6.f;
+            const float scale = iconHeight / static_cast<float>(textureSize.y);
+            const float iconWidth = static_cast<float>(textureSize.x) * scale;
+            const float frameWidth = iconWidth + iconFramePadding * 2.f;
+            const float frameHeight = iconHeight + iconFramePadding * 2.f;
+            const float frameLeft = healthBarPadding + healthBarWidth + iconGap - iconFramePadding;
+            const float frameTop = healthBarPadding - 3.f - iconFramePadding;
+
+            sf::RectangleShape iconFrame({frameWidth, frameHeight});
+            iconFrame.setPosition(frameLeft, frameTop);
+            iconFrame.setFillColor(sf::Color(0, 0, 0, 255));
+            iconFrame.setOutlineThickness(1.f);
+            iconFrame.setOutlineColor(sf::Color(0, 0, 0, 255));
+            window_.draw(iconFrame);
+
+            longBlastIconSprite_.setPosition(
+                healthBarPadding + healthBarWidth + iconGap,
+                healthBarPadding - 3.f);
+            longBlastIconSprite_.setScale(scale, scale);
+            window_.draw(longBlastIconSprite_);
+        }
+    }
 
     if (player_.isDead() && hasGameOverFont_)
     {
