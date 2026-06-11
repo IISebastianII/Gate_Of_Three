@@ -27,4 +27,6 @@ private:
     sf::View gameView_;
     RoomManager roomManager_;
     Player player_;
+    sf::Font gameOverFont_;
+    bool hasGameOverFont_ = false;
 };

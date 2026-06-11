@@ -21,6 +21,7 @@ Game::Game()
     window_.setKeyRepeatEnabled(false);
 
     player_.setFeetPosition(roomManager_.getCurrentRoom().getPlayerSpawnFeet());
+    hasGameOverFont_ = gameOverFont_.loadFromFile("C:/Windows/Fonts/arial.ttf");
     updateCamera();
 }
 
@@ -114,6 +115,22 @@ void Game::renderHud()
     fill.setPosition(healthBarPadding, healthBarPadding);
     fill.setFillColor(sf::Color(190, 35, 42));
     window_.draw(fill);
+
+    if (player_.isDead() && hasGameOverFont_)
+    {
+        sf::Text gameOverText;
+        gameOverText.setFont(gameOverFont_);
+        gameOverText.setString("GAME OVER");
+        gameOverText.setCharacterSize(72);
+        gameOverText.setFillColor(sf::Color(210, 35, 42));
+        gameOverText.setOutlineColor(sf::Color(15, 15, 15));
+        gameOverText.setOutlineThickness(4.f);
+
+        const sf::FloatRect bounds = gameOverText.getLocalBounds();
+        gameOverText.setOrigin(bounds.left + bounds.width * 0.5f, bounds.top + bounds.height * 0.5f);
+        gameOverText.setPosition(static_cast<float>(windowWidth) * 0.5f, static_cast<float>(windowHeight) * 0.5f);
+        window_.draw(gameOverText);
+    }
 }
 
 void Game::updateCamera()
