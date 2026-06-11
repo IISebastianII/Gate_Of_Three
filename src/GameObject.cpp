@@ -18,6 +18,10 @@ void GameObject::receiveDamage(int, sf::Vector2f)
 {
 }
 
+void GameObject::interact()
+{
+}
+
 bool GameObject::isAlive() const
 {
     return alive_;

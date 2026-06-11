@@ -93,6 +93,17 @@ void Room::damageObjectsInBounds(const sf::FloatRect& damageBounds, int damage, 
     }
 }
 
+void Room::interactObjectsInBounds(const sf::FloatRect& interactionBounds)
+{
+    for (auto& object : objects_)
+    {
+        if (object->isAlive() && interactionBounds.intersects(object->getBounds()))
+        {
+            object->interact();
+        }
+    }
+}
+
 void Room::removeDestroyedObjects()
 {
     objects_.erase(

@@ -17,6 +17,18 @@ constexpr float iconGap = 14.f;
 constexpr float iconFramePadding = 3.f;
 constexpr float retryButtonWidth = 320.f;
 constexpr float retryButtonHeight = 56.f;
+constexpr float interactionPaddingX = 36.f;
+constexpr float interactionPaddingY = 28.f;
+
+sf::FloatRect expandBounds(const sf::FloatRect& bounds, float paddingX, float paddingY)
+{
+    return {
+        bounds.left - paddingX,
+        bounds.top - paddingY,
+        bounds.width + paddingX * 2.f,
+        bounds.height + paddingY * 2.f
+    };
+}
 }
 
 Game::Game()
@@ -81,7 +93,7 @@ void Game::processEvents()
             }
         }
 
-        if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::E)
+        if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::E && !player_.isDead())
         {
             Room& room = roomManager_.getCurrentRoom();
             if (const RoomExit* exit = room.findTouchedExit(player_.getBounds()))
@@ -90,6 +102,10 @@ void Game::processEvents()
                 const sf::Vector2f targetSpawnFeet = exit->getTargetSpawnFeet();
                 roomManager_.changeRoom(targetRoom);
                 player_.setFeetPosition(targetSpawnFeet);
+            }
+            else
+            {
+                room.interactObjectsInBounds(expandBounds(player_.getBounds(), interactionPaddingX, interactionPaddingY));
             }
         }
 
