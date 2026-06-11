@@ -186,8 +186,14 @@ void Enemy::updateAi(float, Player& player)
 
     const sf::Vector2f playerCenter = player.getCenter();
     const sf::Vector2f enemyCenter = getCenter();
+    const sf::FloatRect playerBounds = player.getBounds();
+    const sf::FloatRect enemyBounds = getBounds();
     const float distanceX = playerCenter.x - enemyCenter.x;
     const float distanceY = std::abs(playerCenter.y - enemyCenter.y);
+    const float edgeGap = distanceX >= 0.f
+        ? playerBounds.left - (enemyBounds.left + enemyBounds.width)
+        : enemyBounds.left - (playerBounds.left + playerBounds.width);
+    const float clampedEdgeGap = std::max(0.f, edgeGap);
 
     if (attacking_)
     {
@@ -196,7 +202,7 @@ void Enemy::updateAi(float, Player& player)
         return;
     }
 
-    if (std::abs(distanceX) <= attackRange_ && distanceY <= attackHeight_ && attackCooldown_ <= 0.f)
+    if (clampedEdgeGap <= attackRange_ && distanceY <= attackHeight_ && attackCooldown_ <= 0.f)
     {
         attacking_ = true;
         attackHitDone_ = false;
@@ -211,6 +217,13 @@ void Enemy::updateAi(float, Player& player)
     if (std::abs(distanceX) <= detectionRange_ && distanceY <= 120.f)
     {
         facingRight_ = distanceX > 0.f;
+        if (clampedEdgeGap <= preferredPlayerGap_)
+        {
+            velocity_.x = 0.f;
+            setAnimationState(AnimationState::Idle);
+            return;
+        }
+
         velocity_.x = facingRight_ ? chaseSpeed_ : -chaseSpeed_;
         setAnimationState(AnimationState::Walk);
         return;
@@ -298,10 +311,10 @@ sf::FloatRect Enemy::getAttackBounds() const
     const float top = position_.y + (colliderSize_.y - attackHeight_) * 0.5f;
     if (facingRight_)
     {
-        return {position_.x + colliderSize_.x, top, attackRange_, attackHeight_};
+        return {position_.x + colliderSize_.x - attackInset_, top, attackRange_ + attackInset_, attackHeight_};
     }
 
-    return {position_.x - attackRange_, top, attackRange_, attackHeight_};
+    return {position_.x - attackRange_, top, attackRange_ + attackInset_, attackHeight_};
 }
 
 bool Enemy::isAttackActive() const

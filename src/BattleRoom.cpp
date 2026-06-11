@@ -185,6 +185,15 @@ void BattleRoom::buildGeometry()
         tutorialExit.setTexture(signTexture->second, {tileSize_ * 1.5f, groundTop_}, tileScale_);
     }
 
+    RoomExit& chestExit = addExit(
+        RoomType::Chest,
+        {160.f, 772.f},
+        {roomSize_.x - tileSize_ * 3.f, groundTop_ - tileSize_, tileSize_ * 3.f, tileSize_ * 2.f});
+    if (signTexture != textures_.end())
+    {
+        chestExit.setTexture(signTexture->second, {roomSize_.x - tileSize_ * 1.5f, groundTop_}, tileScale_);
+    }
+
     addObject<Enemy>(sf::Vector2f{tileCenterX(14), tileTop(1)});
     addObject<Enemy>(sf::Vector2f{tileCenterX(24), tileTop(1)});
     addObject<Enemy>(sf::Vector2f{tileCenterX(33), tileTop(1)});

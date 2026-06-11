@@ -59,6 +59,8 @@ private:
     static constexpr float detectionRange_ = 390.f;
     static constexpr float attackRange_ = 82.f;
     static constexpr float attackHeight_ = 70.f;
+    static constexpr float attackInset_ = 24.f;
+    static constexpr float preferredPlayerGap_ = 34.f;
     static constexpr float attackCooldownDuration_ = 0.95f;
     static constexpr float attackActiveStart_ = 0.22f;
     static constexpr float attackActiveEnd_ = 0.45f;
