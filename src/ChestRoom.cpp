@@ -3,6 +3,8 @@
 #include "AssetPaths.h"
 #include "Chest.h"
 
+#include <algorithm>
+
 ChestRoom::ChestRoom()
     : Room(RoomType::Chest)
 {
@@ -14,6 +16,15 @@ ChestRoom::ChestRoom()
 
 void ChestRoom::draw(sf::RenderTarget& target) const
 {
+    sf::RectangleShape sky(roomSize_);
+    sky.setFillColor(clearColor_);
+    target.draw(sky);
+
+    if (hasBackground_)
+    {
+        target.draw(background_);
+    }
+
     if (hasTiles_)
     {
         for (const auto& tile : tiles_)
@@ -36,6 +47,9 @@ sf::Vector2f ChestRoom::getPlayerSpawnFeet() const
 
 void ChestRoom::loadTextures()
 {
+    hasBackground_ = backgroundTexture_.loadFromFile(AssetPaths::resolve("backgrounds/forest_background.png").string());
+    backgroundTexture_.setSmooth(false);
+
     loadTexture("grass", "Tiles/grass/grass.png");
     loadTexture("dirt", "Tiles/grass/dirt_inside_filling.png");
 
@@ -47,6 +61,18 @@ void ChestRoom::buildGeometry()
     solidColliders_.clear();
     tiles_.clear();
     solidColliders_.push_back({0.f, groundTop_, roomSize_.x, roomSize_.y - groundTop_});
+
+    if (hasBackground_)
+    {
+        const auto textureSize = backgroundTexture_.getSize();
+        const float scaleX = roomSize_.x / static_cast<float>(textureSize.x);
+        const float scaleY = roomSize_.y / static_cast<float>(textureSize.y);
+        const float scale = std::max(scaleX, scaleY);
+        background_.setTexture(backgroundTexture_);
+        background_.setScale(scale, scale);
+        background_.setColor(sf::Color::White);
+        background_.setPosition((roomSize_.x - static_cast<float>(textureSize.x) * scale) * 0.5f, 0.f);
+    }
 
     ground_.setSize({roomSize_.x, roomSize_.y - groundTop_});
     ground_.setPosition(0.f, groundTop_);

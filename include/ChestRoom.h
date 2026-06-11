@@ -26,9 +26,12 @@ private:
     static constexpr float tileSize_ = 64.f;
     static constexpr float groundTop_ = 772.f;
 
+    sf::Texture backgroundTexture_;
     std::map<std::string, sf::Texture> textures_;
+    bool hasBackground_ = false;
     bool hasTiles_ = false;
 
+    sf::Sprite background_;
     sf::RectangleShape ground_;
     std::vector<sf::Sprite> tiles_;
 };

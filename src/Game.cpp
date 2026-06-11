@@ -29,6 +29,31 @@ sf::FloatRect expandBounds(const sf::FloatRect& bounds, float paddingX, float pa
         bounds.height + paddingY * 2.f
     };
 }
+
+sf::Image createDisabledIconImage(const sf::Image& source)
+{
+    const sf::Vector2u size = source.getSize();
+    sf::Image disabled;
+    disabled.create(size.x, size.y, sf::Color::Transparent);
+
+    for (unsigned y = 0; y < size.y; ++y)
+    {
+        for (unsigned x = 0; x < size.x; ++x)
+        {
+            const sf::Color color = source.getPixel(x, y);
+            const unsigned luminance = static_cast<unsigned>(color.r * 0.299f + color.g * 0.587f + color.b * 0.114f);
+            const unsigned dimmedLuminance = static_cast<unsigned>(luminance * 0.78f);
+
+            disabled.setPixel(x, y, sf::Color(
+                static_cast<sf::Uint8>(dimmedLuminance),
+                static_cast<sf::Uint8>(dimmedLuminance),
+                static_cast<sf::Uint8>(dimmedLuminance),
+                static_cast<sf::Uint8>(std::min(255u, (static_cast<unsigned>(color.a) * 170u) / 255u))));
+        }
+    }
+
+    return disabled;
+}
 }
 
 Game::Game()
@@ -41,9 +66,12 @@ Game::Game()
 
     player_.setFeetPosition(roomManager_.getCurrentRoom().getPlayerSpawnFeet());
     hasGameOverFont_ = gameOverFont_.loadFromFile("C:/Windows/Fonts/arial.ttf");
-    hasLongBlastIcon_ = longBlastIconTexture_.loadFromFile(AssetPaths::resolve("long_blast_icon.png").string());
+    sf::Image longBlastIconImage;
+    hasLongBlastIcon_ = longBlastIconImage.loadFromFile(AssetPaths::resolve("long_blast_icon.png").string());
     if (hasLongBlastIcon_)
     {
+        const sf::Image disabledIconImage = createDisabledIconImage(longBlastIconImage);
+        hasLongBlastIcon_ = longBlastIconTexture_.loadFromImage(disabledIconImage);
         longBlastIconTexture_.setSmooth(false);
         longBlastIconSprite_.setTexture(longBlastIconTexture_);
     }
@@ -182,14 +210,15 @@ void Game::renderHud()
 
             sf::RectangleShape iconFrame({frameWidth, frameHeight});
             iconFrame.setPosition(frameLeft, frameTop);
-            iconFrame.setFillColor(sf::Color(0, 0, 0, 255));
+            iconFrame.setFillColor(sf::Color(20, 24, 32, 170));
             iconFrame.setOutlineThickness(1.f);
-            iconFrame.setOutlineColor(sf::Color(0, 0, 0, 255));
+            iconFrame.setOutlineColor(sf::Color(255, 255, 255, 65));
             window_.draw(iconFrame);
 
             longBlastIconSprite_.setPosition(
                 healthBarPadding + healthBarWidth + iconGap,
                 healthBarPadding - 3.f);
+            longBlastIconSprite_.setColor(sf::Color(235, 235, 235, 220));
             longBlastIconSprite_.setScale(scale, scale);
             window_.draw(longBlastIconSprite_);
         }
