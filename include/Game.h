@@ -22,6 +22,8 @@ private:
     void render();
     void renderHud();
     void updateCamera();
+    void restartGame();
+    sf::FloatRect getRetryButtonBounds() const;
 
     sf::RenderWindow window_;
     sf::View gameView_;

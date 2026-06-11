@@ -22,6 +22,7 @@ public:
     void receiveDamage(int damage, sf::Vector2f sourcePosition) override;
 
     void setFeetPosition(sf::Vector2f feetPosition);
+    void resetForRestart(sf::Vector2f feetPosition);
     sf::Vector2f getCenter() const;
     sf::FloatRect getBounds() const override;
     sf::FloatRect getAttackBounds() const;

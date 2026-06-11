@@ -10,6 +10,8 @@ constexpr float maxDeltaTime = 1.f / 30.f;
 constexpr float healthBarWidth = 220.f;
 constexpr float healthBarHeight = 24.f;
 constexpr float healthBarPadding = 24.f;
+constexpr float retryButtonWidth = 320.f;
+constexpr float retryButtonHeight = 56.f;
 }
 
 Game::Game()
@@ -51,6 +53,21 @@ void Game::processEvents()
         if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape)
         {
             window_.close();
+        }
+
+        if (event.type == sf::Event::MouseButtonPressed
+            && event.mouseButton.button == sf::Mouse::Left
+            && player_.isDead())
+        {
+            const sf::Vector2f mousePosition = window_.mapPixelToCoords(
+                {event.mouseButton.x, event.mouseButton.y},
+                window_.getDefaultView());
+
+            if (getRetryButtonBounds().contains(mousePosition))
+            {
+                restartGame();
+                continue;
+            }
         }
 
         if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::E)
@@ -130,7 +147,48 @@ void Game::renderHud()
         gameOverText.setOrigin(bounds.left + bounds.width * 0.5f, bounds.top + bounds.height * 0.5f);
         gameOverText.setPosition(static_cast<float>(windowWidth) * 0.5f, static_cast<float>(windowHeight) * 0.5f);
         window_.draw(gameOverText);
+
+        const sf::FloatRect buttonBounds = getRetryButtonBounds();
+        sf::RectangleShape retryButton({buttonBounds.width, buttonBounds.height});
+        retryButton.setPosition(buttonBounds.left, buttonBounds.top);
+        retryButton.setFillColor(sf::Color(35, 35, 35));
+        retryButton.setOutlineColor(sf::Color(230, 230, 230));
+        retryButton.setOutlineThickness(3.f);
+        window_.draw(retryButton);
+
+        sf::Text retryText;
+        retryText.setFont(gameOverFont_);
+        retryText.setString("SPROBUJ PONOWNIE");
+        retryText.setCharacterSize(28);
+        retryText.setFillColor(sf::Color::White);
+
+        const sf::FloatRect retryTextBounds = retryText.getLocalBounds();
+        retryText.setOrigin(
+            retryTextBounds.left + retryTextBounds.width * 0.5f,
+            retryTextBounds.top + retryTextBounds.height * 0.5f);
+        retryText.setPosition(
+            buttonBounds.left + buttonBounds.width * 0.5f,
+            buttonBounds.top + buttonBounds.height * 0.5f);
+        window_.draw(retryText);
     }
+}
+
+void Game::restartGame()
+{
+    const RoomType currentRoomType = roomManager_.getCurrentRoomType();
+    roomManager_.changeRoom(currentRoomType);
+    player_.resetForRestart(roomManager_.getCurrentRoom().getPlayerSpawnFeet());
+    updateCamera();
+}
+
+sf::FloatRect Game::getRetryButtonBounds() const
+{
+    return {
+        (static_cast<float>(windowWidth) - retryButtonWidth) * 0.5f,
+        static_cast<float>(windowHeight) * 0.5f + 80.f,
+        retryButtonWidth,
+        retryButtonHeight
+    };
 }
 
 void Game::updateCamera()

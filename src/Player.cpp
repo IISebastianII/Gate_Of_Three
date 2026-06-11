@@ -134,6 +134,15 @@ void Player::setFeetPosition(sf::Vector2f feetPosition)
     syncDrawable();
 }
 
+void Player::resetForRestart(sf::Vector2f feetPosition)
+{
+    setFeetPosition(feetPosition);
+    health_ = maxHealth_;
+    dead_ = false;
+    setAnimationState(AnimationState::Idle);
+    syncDrawable();
+}
+
 sf::Vector2f Player::getCenter() const
 {
     return {position_.x + colliderSize_.x * 0.5f, position_.y + colliderSize_.y * 0.5f};
