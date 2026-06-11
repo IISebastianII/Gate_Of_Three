@@ -7,6 +7,9 @@ namespace
 constexpr unsigned windowWidth = 1280;
 constexpr unsigned windowHeight = 720;
 constexpr float maxDeltaTime = 1.f / 30.f;
+constexpr float healthBarWidth = 220.f;
+constexpr float healthBarHeight = 24.f;
+constexpr float healthBarPadding = 24.f;
 }
 
 Game::Game()
@@ -85,7 +88,32 @@ void Game::render()
     roomManager_.getCurrentRoom().draw(window_);
     player_.draw(window_);
 
+    renderHud();
+
     window_.display();
+}
+
+void Game::renderHud()
+{
+    window_.setView(window_.getDefaultView());
+
+    sf::RectangleShape border({healthBarWidth + 4.f, healthBarHeight + 4.f});
+    border.setPosition(healthBarPadding - 2.f, healthBarPadding - 2.f);
+    border.setFillColor(sf::Color(20, 20, 20));
+    window_.draw(border);
+
+    sf::RectangleShape background({healthBarWidth, healthBarHeight});
+    background.setPosition(healthBarPadding, healthBarPadding);
+    background.setFillColor(sf::Color(80, 80, 80));
+    window_.draw(background);
+
+    const float maxHealth = static_cast<float>(std::max(1, player_.getMaxHealth()));
+    const float healthRatio = std::clamp(static_cast<float>(player_.getHealth()) / maxHealth, 0.f, 1.f);
+
+    sf::RectangleShape fill({healthBarWidth * healthRatio, healthBarHeight});
+    fill.setPosition(healthBarPadding, healthBarPadding);
+    fill.setFillColor(sf::Color(190, 35, 42));
+    window_.draw(fill);
 }
 
 void Game::updateCamera()
