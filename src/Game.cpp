@@ -8,8 +8,9 @@ constexpr unsigned windowWidth = 1280;
 constexpr unsigned windowHeight = 720;
 constexpr float maxDeltaTime = 1.f / 30.f;
 constexpr float healthBarWidth = 220.f;
-constexpr float healthBarHeight = 24.f;
+constexpr float healthBarHeight = 12.f;
 constexpr float healthBarPadding = 24.f;
+constexpr float manaBarGap = 6.f;
 constexpr float retryButtonWidth = 320.f;
 constexpr float retryButtonHeight = 56.f;
 }
@@ -115,23 +116,30 @@ void Game::renderHud()
 {
     window_.setView(window_.getDefaultView());
 
-    sf::RectangleShape border({healthBarWidth + 4.f, healthBarHeight + 4.f});
-    border.setPosition(healthBarPadding - 2.f, healthBarPadding - 2.f);
-    border.setFillColor(sf::Color(20, 20, 20));
-    window_.draw(border);
-
-    sf::RectangleShape background({healthBarWidth, healthBarHeight});
-    background.setPosition(healthBarPadding, healthBarPadding);
-    background.setFillColor(sf::Color(80, 80, 80));
-    window_.draw(background);
-
     const float maxHealth = static_cast<float>(std::max(1, player_.getMaxHealth()));
     const float healthRatio = std::clamp(static_cast<float>(player_.getHealth()) / maxHealth, 0.f, 1.f);
+    const float manaRatio = 1.f;
 
-    sf::RectangleShape fill({healthBarWidth * healthRatio, healthBarHeight});
-    fill.setPosition(healthBarPadding, healthBarPadding);
-    fill.setFillColor(sf::Color(190, 35, 42));
-    window_.draw(fill);
+    const auto drawBar = [&](float top, float ratio, const sf::Color& fillColor)
+    {
+        sf::RectangleShape border({healthBarWidth + 4.f, healthBarHeight + 4.f});
+        border.setPosition(healthBarPadding - 2.f, top - 2.f);
+        border.setFillColor(sf::Color(20, 20, 20));
+        window_.draw(border);
+
+        sf::RectangleShape background({healthBarWidth, healthBarHeight});
+        background.setPosition(healthBarPadding, top);
+        background.setFillColor(sf::Color(80, 80, 80));
+        window_.draw(background);
+
+        sf::RectangleShape fill({healthBarWidth * ratio, healthBarHeight});
+        fill.setPosition(healthBarPadding, top);
+        fill.setFillColor(fillColor);
+        window_.draw(fill);
+    };
+
+    drawBar(healthBarPadding, healthRatio, sf::Color(190, 35, 42));
+    drawBar(healthBarPadding + healthBarHeight + manaBarGap, manaRatio, sf::Color(150, 110, 255));
 
     if (player_.isDead() && hasGameOverFont_)
     {
