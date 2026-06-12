@@ -315,7 +315,7 @@ void Player::loadAnimations()
     loadFrameSeries(AnimationState::Run, "Animations/Player/Run", "Warrior_Run_", 1, 8, 0.08f, true);
     loadFrameSeries(AnimationState::Jump, "Animations/Player/Jump", "Warrior_Jump_", 1, 3, 0.10f, false);
     loadFrameSeries(AnimationState::Fall, "Animations/Player/Fall", "Warrior_Fall_", 1, 3, 0.10f, true);
-    loadFrameSeries(AnimationState::Attack, "Animations/Player/Attack", "Warrior_Attack_", 1, 12, 0.055f, false);
+    loadFrameSeries(AnimationState::Attack, "Animations/Player/Attack", "Warrior_Attack_", 1, 9, 0.07f, false);
     loadFrameSeries(AnimationState::DashAttack, "Animations/Player/Dash-Attack", "Warrior_Dash-Attack_", 1, 10, 0.055f, false);
     loadFrameSeries(AnimationState::Slide, "Animations/Player/Slide", "Warrior-Slide_", 1, 5, 0.07f, false);
     loadFrameSeries(AnimationState::Death, "Animations/Player/Death-Effect", "Warrior_Death_", 1, 11, 0.08f, false);

@@ -86,7 +86,7 @@ private:
     static constexpr float attackActiveStart_ = 0.16f;
     static constexpr float attackActiveEnd_ = 0.38f;
     static constexpr float attackRange_ = 76.f;
-    static constexpr float attackHeight_ = 68.f;
+    static constexpr float attackHeight_ = 196.f;
     static constexpr int attackDamage_ = 1;
     static constexpr float jumpVelocity_ = -820.f;
     static constexpr float gravity_ = 1850.f;

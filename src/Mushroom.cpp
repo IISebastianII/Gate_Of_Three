@@ -11,6 +11,9 @@ Enemy::Settings mushroomSettings()
 {
     Enemy::Settings settings;
     settings.animationRoot = "Animations/Enemy/mushroom";
+    settings.colliderSize = {26.f, 37.f};
+    settings.textureScale = 1.5f;
+    settings.spriteFacesRightByDefault = false;
     settings.maxHealth = 3;
     settings.attackDamage = 1;
     return settings;
@@ -89,7 +92,7 @@ private:
     }
 
     static constexpr float radius_ = 11.f;
-    static constexpr float speed_ = 360.f;
+    static constexpr float speed_ = 180.f;
     static constexpr float maxLifetime_ = 4.f;
 
     sf::Vector2f position_;
@@ -101,6 +104,7 @@ private:
 
 Mushroom::Mushroom(sf::Vector2f feetPosition)
     : Enemy(feetPosition, mushroomSettings())
+    , spawnFeetX_(feetPosition.x)
 {
 }
 
@@ -125,11 +129,9 @@ void Mushroom::update(float deltaTime, Player& player, const std::vector<sf::Flo
         return;
     }
 
-    shotCooldown_ = std::max(0.f, shotCooldown_ - deltaTime);
-    moveVertically(deltaTime, solidColliders);
-
     if (!isDying())
     {
+        shotCooldown_ = std::max(0.f, shotCooldown_ - deltaTime);
         const sf::Vector2f toPlayer = player.getCenter() - getCenter();
         setFacingRight(toPlayer.x > 0.f);
         const bool playerDetected = std::abs(toPlayer.x) <= detectionRange_
@@ -137,25 +139,65 @@ void Mushroom::update(float deltaTime, Player& player, const std::vector<sf::Flo
 
         if (isAttacking())
         {
+            velocity_.x = 0.f;
             if (!projectileSpawned_ && getCurrentAnimationFrame() >= projectileSpawnFrame_)
             {
                 spawnProjectile(player);
                 projectileSpawned_ = true;
             }
         }
-        else if (!isHurt())
+        else if (isHurt())
+        {
+            velocity_.x = 0.f;
+        }
+        else if (playerDetected)
         {
             projectileSpawned_ = false;
-            if (playerDetected && shotCooldown_ <= 0.f)
+            const float horizontalDistance = std::abs(toPlayer.x);
+            if (shotCooldown_ <= 0.f && horizontalDistance <= preferredMaxDistance_)
             {
+                velocity_.x = 0.f;
                 startAttack();
                 shotCooldown_ = shotCooldownDuration_;
             }
+            else if (horizontalDistance > preferredMaxDistance_)
+            {
+                velocity_.x = toPlayer.x > 0.f ? moveSpeed_ : -moveSpeed_;
+                setFacingRight(velocity_.x > 0.f);
+                setAnimationState(AnimationState::Walk);
+            }
+            else if (horizontalDistance < preferredMinDistance_)
+            {
+                velocity_.x = toPlayer.x > 0.f ? -moveSpeed_ : moveSpeed_;
+                setFacingRight(velocity_.x > 0.f);
+                setAnimationState(AnimationState::Walk);
+            }
             else
             {
+                velocity_.x = 0.f;
                 setAnimationState(AnimationState::Idle);
             }
         }
+        else
+        {
+            projectileSpawned_ = false;
+            const float feetX = getCenter().x;
+            if (feetX < spawnFeetX_ - patrolRange_)
+            {
+                patrolDirection_ = 1.f;
+            }
+            else if (feetX > spawnFeetX_ + patrolRange_)
+            {
+                patrolDirection_ = -1.f;
+            }
+
+            velocity_.x = patrolDirection_ * moveSpeed_;
+            setFacingRight(velocity_.x > 0.f);
+            setAnimationState(AnimationState::Walk);
+        }
+
+        moveHorizontally(deltaTime, solidColliders);
+        moveVertically(deltaTime, solidColliders);
     }
 
     updateVisuals(deltaTime);

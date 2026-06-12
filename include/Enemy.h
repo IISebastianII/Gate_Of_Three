@@ -18,6 +18,7 @@ public:
         std::string animationRoot = "Animations/Enemy/skeleton";
         sf::Vector2f colliderSize = {52.f, 74.f};
         float textureScale = 3.f;
+        bool spriteFacesRightByDefault = true;
         float patrolSpeed = 70.f;
         float chaseSpeed = 125.f;
         float patrolRange = 180.f;
@@ -27,6 +28,7 @@ public:
         float attackInset = 24.f;
         float preferredPlayerGap = 34.f;
         float attackCooldownDuration = 0.95f;
+        float maxStepHeight = 68.f;
         int maxHealth = 3;
         int attackDamage = 1;
         std::size_t attackActiveStartFrame = 4;
@@ -63,10 +65,10 @@ private:
     void loadAnimations(const std::string& animationRoot);
     void loadFrameSeries(AnimationState state, const std::vector<std::string>& directories, int first, int last, float frameTime, bool loop);
     void updateAi(float deltaTime, Player& player);
-    void moveHorizontally(float deltaTime, const std::vector<sf::FloatRect>& solidColliders);
 protected:
     bool updatePassiveState(float deltaTime);
     void updateVisuals(float deltaTime);
+    void moveHorizontally(float deltaTime, const std::vector<sf::FloatRect>& solidColliders);
     void moveVertically(float deltaTime, const std::vector<sf::FloatRect>& solidColliders);
     sf::Vector2f getCenter() const;
     void setFacingRight(bool facingRight);
@@ -91,6 +93,7 @@ private:
 
     sf::Vector2f colliderSize_ = {52.f, 74.f};
     float textureScale_ = 3.f;
+    bool spriteFacesRightByDefault_ = true;
     float patrolSpeed_ = 70.f;
     float chaseSpeed_ = 125.f;
     float patrolRange_ = 180.f;
@@ -100,6 +103,7 @@ private:
     float attackInset_ = 24.f;
     float preferredPlayerGap_ = 34.f;
     float attackCooldownDuration_ = 0.95f;
+    float maxStepHeight_ = 68.f;
 
     int maxHealth_ = 3;
     int attackDamage_ = 1;

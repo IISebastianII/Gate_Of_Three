@@ -23,8 +23,14 @@ private:
     static constexpr float detectionRange_ = 720.f;
     static constexpr float verticalDetectionRange_ = 220.f;
     static constexpr float shotCooldownDuration_ = 1.8f;
+    static constexpr float moveSpeed_ = 82.f;
+    static constexpr float preferredMinDistance_ = 250.f;
+    static constexpr float preferredMaxDistance_ = 470.f;
+    static constexpr float patrolRange_ = 130.f;
     static constexpr std::size_t projectileSpawnFrame_ = 6;
 
+    float spawnFeetX_ = 0.f;
+    float patrolDirection_ = -1.f;
     float shotCooldown_ = 0.f;
     bool projectileSpawned_ = false;
     std::vector<std::unique_ptr<MushroomProjectile>> projectiles_;

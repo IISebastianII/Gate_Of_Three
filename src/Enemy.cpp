@@ -27,6 +27,7 @@ Enemy::Enemy(sf::Vector2f feetPosition)
 Enemy::Enemy(sf::Vector2f feetPosition, Settings settings)
     : colliderSize_(settings.colliderSize)
     , textureScale_(settings.textureScale)
+    , spriteFacesRightByDefault_(settings.spriteFacesRightByDefault)
     , patrolSpeed_(settings.patrolSpeed)
     , chaseSpeed_(settings.chaseSpeed)
     , patrolRange_(settings.patrolRange)
@@ -36,6 +37,7 @@ Enemy::Enemy(sf::Vector2f feetPosition, Settings settings)
     , attackInset_(settings.attackInset)
     , preferredPlayerGap_(settings.preferredPlayerGap)
     , attackCooldownDuration_(settings.attackCooldownDuration)
+    , maxStepHeight_(settings.maxStepHeight)
     , maxHealth_(std::max(1, settings.maxHealth))
     , attackDamage_(std::max(1, settings.attackDamage))
     , health_(maxHealth_)
@@ -314,6 +316,14 @@ void Enemy::moveHorizontally(float deltaTime, const std::vector<sf::FloatRect>& 
             continue;
         }
 
+        const float verticalOverlapFromFeet = bounds.top + bounds.height - solid.top;
+        if (onGround_ && verticalOverlapFromFeet > 0.f && verticalOverlapFromFeet <= maxStepHeight_)
+        {
+            position_.y -= verticalOverlapFromFeet;
+            bounds = getBounds();
+            continue;
+        }
+
         if (velocity_.x > 0.f)
         {
             position_.x = solid.left - colliderSize_.x;
@@ -514,7 +524,8 @@ void Enemy::syncDrawable()
     sprite_.setTexture(texture, true);
     sprite_.setOrigin(static_cast<float>(texture.getSize().x) * 0.5f, static_cast<float>(texture.getSize().y));
     sprite_.setPosition(position_.x + colliderSize_.x * 0.5f, position_.y + colliderSize_.y + 1.f);
-    sprite_.setScale(facingRight_ ? textureScale_ : -textureScale_, textureScale_);
+    const bool usePositiveScale = facingRight_ == spriteFacesRightByDefault_;
+    sprite_.setScale(usePositiveScale ? textureScale_ : -textureScale_, textureScale_);
 }
 
 float Enemy::healthPercent() const
