@@ -11,7 +11,7 @@
 class BattleRoom : public Room
 {
 public:
-    BattleRoom();
+    explicit BattleRoom(RoomType type = RoomType::Battle);
 
     void draw(sf::RenderTarget& target) const override;
     sf::Vector2f getPlayerSpawnFeet() const override;

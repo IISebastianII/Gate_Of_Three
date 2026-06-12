@@ -45,6 +45,8 @@ std::unique_ptr<Room> RoomManager::createRoom(RoomType type) const
         return std::make_unique<TutorialRoom>();
     case RoomType::Battle:
         return std::make_unique<BattleRoom>();
+    case RoomType::BattleTwo:
+        return std::make_unique<BattleRoom>(RoomType::BattleTwo);
     case RoomType::Heal:
         return std::make_unique<HealRoom>();
     case RoomType::Chest:

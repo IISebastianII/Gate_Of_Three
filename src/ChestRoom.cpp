@@ -69,6 +69,7 @@ void ChestRoom::loadTextures()
 
     loadTexture("grass", "Tiles/grass/grass.png");
     loadTexture("dirt", "Tiles/grass/dirt_inside_filling.png");
+    loadTexture("sign", "decors/sign.png");
 
     hasTiles_ = textures_.count("grass") > 0 && textures_.count("dirt") > 0;
 }
@@ -106,6 +107,17 @@ void ChestRoom::buildGeometry()
     }
 
     chest_ = &addObject<Chest>(sf::Vector2f{roomSize_.x * 0.5f, groundTop_});
+
+    RoomExit& battleExit = addExit(
+        RoomType::BattleTwo,
+        {160.f, groundTop_},
+        {roomSize_.x - tileSize_ * 3.f, groundTop_ - tileSize_, tileSize_ * 3.f, tileSize_ * 2.f});
+    const auto signTexture = textures_.find("sign");
+    if (signTexture != textures_.end())
+    {
+        battleExit.setTexture(signTexture->second, {roomSize_.x - tileSize_ * 1.5f, groundTop_}, tileScale_);
+    }
+
     longBlastUnlockRequested_ = false;
     longBlastUnlockGranted_ = false;
 }

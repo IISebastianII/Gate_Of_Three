@@ -3,8 +3,8 @@
 #include "AssetPaths.h"
 #include "Enemy.h"
 
-BattleRoom::BattleRoom()
-    : Room(RoomType::Battle)
+BattleRoom::BattleRoom(RoomType type)
+    : Room(type)
 {
     roomSize_ = {2304.f, 900.f};
     clearColor_ = sf::Color(222, 236, 239);
@@ -175,23 +175,44 @@ void BattleRoom::buildGeometry()
         }
     }
 
-    RoomExit& tutorialExit = addExit(
-        RoomType::Tutorial,
-        {1880.f, 772.f},
+    const RoomType previousRoom = type_ == RoomType::BattleTwo
+        ? RoomType::Chest
+        : RoomType::Tutorial;
+    const sf::Vector2f previousRoomSpawn = type_ == RoomType::BattleTwo
+        ? sf::Vector2f{1120.f, 772.f}
+        : sf::Vector2f{1880.f, 772.f};
+
+    RoomExit& previousExit = addExit(
+        previousRoom,
+        previousRoomSpawn,
         {0.f, groundTop_ - tileSize_, tileSize_ * 3.f, tileSize_ * 2.f});
     const auto signTexture = textures_.find("sign");
     if (signTexture != textures_.end())
     {
-        tutorialExit.setTexture(signTexture->second, {tileSize_ * 1.5f, groundTop_}, tileScale_);
+        previousExit.setTexture(signTexture->second, {tileSize_ * 1.5f, groundTop_}, tileScale_);
     }
 
-    RoomExit& chestExit = addExit(
-        RoomType::Chest,
-        {160.f, 772.f},
-        {roomSize_.x - tileSize_ * 3.f, groundTop_ - tileSize_, tileSize_ * 3.f, tileSize_ * 2.f});
-    if (signTexture != textures_.end())
+    if (type_ == RoomType::Battle)
     {
-        chestExit.setTexture(signTexture->second, {roomSize_.x - tileSize_ * 1.5f, groundTop_}, tileScale_);
+        RoomExit& chestExit = addExit(
+            RoomType::Chest,
+            {160.f, 772.f},
+            {roomSize_.x - tileSize_ * 3.f, groundTop_ - tileSize_, tileSize_ * 3.f, tileSize_ * 2.f});
+        if (signTexture != textures_.end())
+        {
+            chestExit.setTexture(signTexture->second, {roomSize_.x - tileSize_ * 1.5f, groundTop_}, tileScale_);
+        }
+    }
+    else if (type_ == RoomType::BattleTwo)
+    {
+        RoomExit& healExit = addExit(
+            RoomType::Heal,
+            {160.f, 772.f},
+            {roomSize_.x - tileSize_ * 3.f, groundTop_ - tileSize_, tileSize_ * 3.f, tileSize_ * 2.f});
+        if (signTexture != textures_.end())
+        {
+            healExit.setTexture(signTexture->second, {roomSize_.x - tileSize_ * 1.5f, groundTop_}, tileScale_);
+        }
     }
 
     addObject<Enemy>(sf::Vector2f{tileCenterX(14), tileTop(1)});
