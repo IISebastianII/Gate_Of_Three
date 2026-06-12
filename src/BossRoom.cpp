@@ -99,10 +99,20 @@ void BossRoom::buildGeometry()
         }
     }
 
-    addExit(
-        RoomType::Heal,
-        {1120.f, 452.f},
-        {0.f, groundTop_ - tileSize_, tileSize_ * 3.f, tileSize_ * 2.f});
+    const auto floorRock = textures_.find("ceiling");
+    if (floorRock != textures_.end())
+    {
+        constexpr int columns = 20;
+        for (int column = 0; column < columns; ++column)
+        {
+            sf::Sprite floorTile(floorRock->second);
+            floorTile.setScale(tileScale_, -tileScale_);
+            floorTile.setPosition(
+                static_cast<float>(column) * tileSize_,
+                groundTop_ + tileSize_);
+            tiles_.push_back(floorTile);
+        }
+    }
 
     addObject<Boss>(sf::Vector2f{roomSize_.x * 0.68f, groundTop_});
 }

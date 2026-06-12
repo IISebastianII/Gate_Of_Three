@@ -23,6 +23,7 @@ public:
     void receiveDamage(int damage, sf::Vector2f sourcePosition) override;
 
     void setFeetPosition(sf::Vector2f feetPosition);
+    void setDeadFeetPosition(sf::Vector2f feetPosition);
     void resetForRestart(sf::Vector2f feetPosition);
     void healToFull();
     bool consumeSpellCastRequest();
@@ -94,12 +95,12 @@ private:
     static constexpr float textureScale_ = 3.f;
     static constexpr float damageInvulnerabilityDuration_ = 0.85f;
     static constexpr float manaRegenerationInterval_ = 4.f;
-    static constexpr int maxHealth_ = 5;
+    static constexpr int maxHealth_ = 8;
     static constexpr int maxMana_ = 4;
     static constexpr std::size_t spellProjectileSpawnFrame_ = 3;
     static const sf::Vector2f colliderSize_;
 
-    Spell longBlastSpell_ = Spell("long_blast", 2, 860.f, 0.34f, 2);
+    Spell longBlastSpell_ = Spell(2, 860.f, 0.34f, 2);
     bool longBlastUnlocked_ = false;
     int health_ = maxHealth_;
     int mana_ = maxMana_;

@@ -171,11 +171,6 @@ void HealRoom::buildGeometry()
     sanctuary_ = &addObject<HealingSanctuary>(sf::Vector2f{7.f * tileSize_, mapTop + 12.f * tileSize_});
 
     addExit(
-        RoomType::BattleTwo,
-        {1952.f, groundTop_},
-        {0.f, groundTop_ - tileSize_, tileSize_ * 3.f, tileSize_ * 2.f});
-
-    addExit(
         RoomType::Boss,
         {160.f, 836.f},
         {roomSize_.x - tileSize_ * 3.f, mapTop + 7.f * tileSize_, tileSize_ * 3.f, tileSize_ * 3.f});

@@ -189,10 +189,6 @@ void BattleRoom::buildBattleOneGeometry()
     }
 
     addExit(
-        RoomType::Tutorial,
-        {1880.f, groundTop_},
-        {0.f, groundTop_ - tileSize_, tileSize_ * 3.f, tileSize_ * 2.f});
-    addExit(
         RoomType::Chest,
         {32.f, groundTop_},
         {roomSize_.x - tileSize_ * 3.f, groundTop_ - tileSize_, tileSize_ * 3.f, tileSize_ * 2.f});
@@ -265,10 +261,6 @@ void BattleRoom::buildBattleTwoGeometry()
         background_.setPosition((roomSize_.x - static_cast<float>(textureSize.x) * scale) * 0.5f, 0.f);
     }
 
-    addExit(
-        RoomType::Chest,
-        {1216.f, groundTop_},
-        {0.f, groundTop_ - tileSize_, tileSize_ * 3.f, tileSize_ * 2.f});
     addExit(
         RoomType::Heal,
         {32.f, groundTop_},

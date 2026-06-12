@@ -7,7 +7,7 @@
 
 Npc::Npc()
 {
-    boundsSize_ = {64.f, 64.f};
+    boundsSize_ = {32.f, 32.f};
     loadCatIdle();
     syncPlaceholder();
     syncDrawable();
@@ -168,41 +168,41 @@ void Npc::syncPlaceholder()
     const sf::Color darkColor(42, 48, 56);
     const sf::Color eyeColor(206, 225, 132);
 
-    body_.setSize({62.f, 28.f});
+    body_.setSize({31.f, 14.f});
     body_.setFillColor(bodyColor);
-    body_.setPosition(feetPosition_.x - 34.f, feetPosition_.y - 28.f);
+    body_.setPosition(feetPosition_.x - 17.f, feetPosition_.y - 14.f);
 
-    head_.setSize({32.f, 30.f});
+    head_.setSize({16.f, 15.f});
     head_.setFillColor(bodyColor);
-    head_.setPosition(feetPosition_.x + 12.f, feetPosition_.y - 54.f);
+    head_.setPosition(feetPosition_.x + 6.f, feetPosition_.y - 27.f);
 
-    tail_.setSize({10.f, 42.f});
+    tail_.setSize({5.f, 21.f});
     tail_.setFillColor(bodyColor);
-    tail_.setOrigin(5.f, 38.f);
-    tail_.setPosition(feetPosition_.x - 36.f, feetPosition_.y - 22.f);
+    tail_.setOrigin(2.5f, 19.f);
+    tail_.setPosition(feetPosition_.x - 18.f, feetPosition_.y - 11.f);
     tail_.setRotation(-28.f);
 
     leftEar_.setPointCount(3);
-    leftEar_.setPoint(0, {0.f, 18.f});
-    leftEar_.setPoint(1, {9.f, 0.f});
-    leftEar_.setPoint(2, {18.f, 18.f});
+    leftEar_.setPoint(0, {0.f, 9.f});
+    leftEar_.setPoint(1, {4.5f, 0.f});
+    leftEar_.setPoint(2, {9.f, 9.f});
     leftEar_.setFillColor(bodyColor);
-    leftEar_.setPosition(feetPosition_.x + 14.f, feetPosition_.y - 66.f);
+    leftEar_.setPosition(feetPosition_.x + 7.f, feetPosition_.y - 33.f);
 
     rightEar_.setPointCount(3);
-    rightEar_.setPoint(0, {0.f, 18.f});
-    rightEar_.setPoint(1, {9.f, 0.f});
-    rightEar_.setPoint(2, {18.f, 18.f});
+    rightEar_.setPoint(0, {0.f, 9.f});
+    rightEar_.setPoint(1, {4.5f, 0.f});
+    rightEar_.setPoint(2, {9.f, 9.f});
     rightEar_.setFillColor(bodyColor);
-    rightEar_.setPosition(feetPosition_.x + 28.f, feetPosition_.y - 66.f);
+    rightEar_.setPosition(feetPosition_.x + 14.f, feetPosition_.y - 33.f);
 
-    leftEye_.setRadius(2.6f);
+    leftEye_.setRadius(1.3f);
     leftEye_.setFillColor(eyeColor);
-    leftEye_.setPosition(feetPosition_.x + 20.f, feetPosition_.y - 43.f);
+    leftEye_.setPosition(feetPosition_.x + 10.f, feetPosition_.y - 21.5f);
 
-    rightEye_.setRadius(2.6f);
+    rightEye_.setRadius(1.3f);
     rightEye_.setFillColor(eyeColor);
-    rightEye_.setPosition(feetPosition_.x + 33.f, feetPosition_.y - 43.f);
+    rightEye_.setPosition(feetPosition_.x + 16.5f, feetPosition_.y - 21.5f);
 
     body_.setOutlineColor(darkColor);
     body_.setOutlineThickness(2.f);

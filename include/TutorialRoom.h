@@ -24,7 +24,6 @@ private:
     void loadTexture(const std::string& id, const std::string& relativePath);
     void addTile(const std::string& textureId, int column, int visualRow);
     void addSprite(const std::string& textureId, sf::Vector2f bottomCenter, float scale = tileScale_);
-    void addTiledPlatform(const sf::FloatRect& bounds);
 
     static constexpr float tileScale_ = 2.f;
     static constexpr float tileSize_ = 64.f;

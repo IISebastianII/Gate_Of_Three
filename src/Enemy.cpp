@@ -186,7 +186,7 @@ void Enemy::receiveDamage(int damage, sf::Vector2f sourcePosition)
 
 bool Enemy::canReceiveDamage() const
 {
-    return true;
+    return !dying_;
 }
 
 void Enemy::loadAnimations(const std::string& animationRoot)

@@ -15,8 +15,6 @@ public:
     void draw(sf::RenderTarget& target) const override;
     void setBeamLength(float beamLength);
     int getDamage() const;
-    sf::Vector2f getDirection() const;
-    bool hasExpired() const;
 
 private:
     void loadVisualAnimation();

@@ -4,7 +4,7 @@
 #include "Npc.h"
 #include "TerrainCollision.h"
 
-#include <cmath>
+#include <algorithm>
 #include <initializer_list>
 
 TutorialRoom::TutorialRoom()
@@ -279,19 +279,4 @@ void TutorialRoom::addSprite(const std::string& textureId, sf::Vector2f bottomCe
     sprite.setScale(scale, scale);
     sprite.setPosition(bottomCenter);
     decors_.push_back(sprite);
-}
-
-void TutorialRoom::addTiledPlatform(const sf::FloatRect& bounds)
-{
-    const int columns = static_cast<int>(std::ceil(bounds.width / tileSize_));
-    const int rows = static_cast<int>(std::ceil(bounds.height / tileSize_));
-
-    for (int column = 0; column < columns; ++column)
-    {
-        for (int row = 0; row < rows; ++row)
-        {
-            const std::string textureId = row == 0 ? "grass" : "dirt";
-            addTile(textureId, static_cast<int>((bounds.left + column * tileSize_) / tileSize_) + 1, static_cast<int>((baseGroundTop_ - bounds.top - row * tileSize_) / tileSize_) + 1);
-        }
-    }
 }

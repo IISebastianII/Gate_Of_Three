@@ -147,6 +147,17 @@ void Player::setFeetPosition(sf::Vector2f feetPosition)
     syncDrawable();
 }
 
+void Player::setDeadFeetPosition(sf::Vector2f feetPosition)
+{
+    position_.x = feetPosition.x - colliderSize_.x * 0.5f;
+    position_.y = feetPosition.y - colliderSize_.y;
+    velocity_ = {};
+    onGround_ = true;
+    dead_ = true;
+    setAnimationState(AnimationState::Death);
+    syncDrawable();
+}
+
 void Player::resetForRestart(sf::Vector2f feetPosition)
 {
     setFeetPosition(feetPosition);
@@ -412,6 +423,7 @@ void Player::applyInput()
 
 void Player::moveHorizontally(float deltaTime, const std::vector<sf::FloatRect>& solidColliders)
 {
+    const sf::FloatRect previousBounds = getBounds();
     position_.x += velocity_.x * deltaTime;
     sf::FloatRect bounds = getBounds();
 
@@ -422,28 +434,47 @@ void Player::moveHorizontally(float deltaTime, const std::vector<sf::FloatRect>&
             continue;
         }
 
-        const bool slopeStrip = solid.width <= 4.1f;
+        const bool slopeStrip = solid.width < 32.f;
         const float feetCenterX = bounds.left + bounds.width * 0.5f;
-        if (slopeStrip && (feetCenterX < solid.left || feetCenterX >= solid.left + solid.width))
+        if (slopeStrip)
         {
+            if (feetCenterX >= solid.left && feetCenterX < solid.left + solid.width)
+            {
+                const float verticalOverlapFromFeet = bounds.top + bounds.height - solid.top;
+                if (onGround_ && verticalOverlapFromFeet > 0.f && verticalOverlapFromFeet <= maxStepHeight_)
+                {
+                    position_.y = solid.top - colliderSize_.y;
+                    bounds = getBounds();
+                }
+            }
             continue;
         }
 
+        const float previousFeet = previousBounds.top + previousBounds.height;
         const float verticalOverlapFromFeet = bounds.top + bounds.height - solid.top;
-        if (onGround_ && verticalOverlapFromFeet > 0.f && verticalOverlapFromFeet <= maxStepHeight_)
+        if (onGround_
+            && solid.top >= previousFeet - maxStepHeight_
+            && verticalOverlapFromFeet > 0.f
+            && verticalOverlapFromFeet <= maxStepHeight_)
         {
-            position_.y -= verticalOverlapFromFeet;
+            position_.y = solid.top - colliderSize_.y;
             bounds = getBounds();
             continue;
         }
 
-        if (velocity_.x > 0.f)
+        const float previousRight = previousBounds.left + previousBounds.width;
+        const float solidRight = solid.left + solid.width;
+        if (velocity_.x > 0.f && previousRight <= solid.left + 0.5f)
         {
             position_.x = solid.left - colliderSize_.x;
         }
-        else if (velocity_.x < 0.f)
+        else if (velocity_.x < 0.f && previousBounds.left >= solidRight - 0.5f)
         {
-            position_.x = solid.left + solid.width;
+            position_.x = solidRight;
+        }
+        else
+        {
+            continue;
         }
 
         velocity_.x = 0.f;
@@ -453,6 +484,7 @@ void Player::moveHorizontally(float deltaTime, const std::vector<sf::FloatRect>&
 
 void Player::moveVertically(float deltaTime, const std::vector<sf::FloatRect>& solidColliders)
 {
+    const sf::FloatRect previousBounds = getBounds();
     velocity_.y += gravity_ * deltaTime;
     position_.y += velocity_.y * deltaTime;
     onGround_ = false;
@@ -465,21 +497,28 @@ void Player::moveVertically(float deltaTime, const std::vector<sf::FloatRect>& s
             continue;
         }
 
-        const bool slopeStrip = solid.width <= 4.1f;
+        const bool slopeStrip = solid.width < 32.f;
         const float feetCenterX = bounds.left + bounds.width * 0.5f;
         if (slopeStrip && (feetCenterX < solid.left || feetCenterX >= solid.left + solid.width))
         {
             continue;
         }
 
-        if (velocity_.y > 0.f)
+        const float previousBottom = previousBounds.top + previousBounds.height;
+        const float solidBottom = solid.top + solid.height;
+        const float landingTolerance = slopeStrip ? maxStepHeight_ : 0.5f;
+        if (velocity_.y > 0.f && previousBottom <= solid.top + landingTolerance)
         {
             position_.y = solid.top - colliderSize_.y;
             onGround_ = true;
         }
-        else if (velocity_.y < 0.f)
+        else if (!slopeStrip && velocity_.y < 0.f && previousBounds.top >= solidBottom - 0.5f)
         {
-            position_.y = solid.top + solid.height;
+            position_.y = solidBottom;
+        }
+        else
+        {
+            continue;
         }
 
         velocity_.y = 0.f;

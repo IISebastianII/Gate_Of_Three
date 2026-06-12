@@ -30,6 +30,7 @@ public:
 
     const std::vector<sf::FloatRect>& getSolidColliders() const;
     const RoomExit* findTouchedExit(const sf::FloatRect& bounds) const;
+    bool hasLivingEnemies() const;
     void damageObjectsInBounds(const sf::FloatRect& damageBounds, int damage, sf::Vector2f sourcePosition);
     void interactObjectsInBounds(const sf::FloatRect& interactionBounds);
     Projectile& spawnProjectile(sf::Vector2f startPosition, sf::Vector2f direction, float speed, int damage);

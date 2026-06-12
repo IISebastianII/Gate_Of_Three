@@ -97,16 +97,6 @@ int Projectile::getDamage() const
     return damage_;
 }
 
-sf::Vector2f Projectile::getDirection() const
-{
-    return direction_;
-}
-
-bool Projectile::hasExpired() const
-{
-    return lifetime_ >= maxLifetime_;
-}
-
 void Projectile::loadVisualAnimation()
 {
     const std::vector<std::filesystem::path> directories = {

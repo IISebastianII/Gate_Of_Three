@@ -72,21 +72,25 @@ OTHER_FILES += \
 
 CONFIG(debug, debug|release) {
     LIBS += -LC:/SFML/lib \
+        -lsfml-audio-d \
         -lsfml-graphics-d \
         -lsfml-window-d \
         -lsfml-system-d
 
     SFML_DLLS = \
+        sfml-audio-d-2.dll \
         sfml-graphics-d-2.dll \
         sfml-window-d-2.dll \
         sfml-system-d-2.dll
 } else {
     LIBS += -LC:/SFML/lib \
+        -lsfml-audio \
         -lsfml-graphics \
         -lsfml-window \
         -lsfml-system
 
     SFML_DLLS = \
+        sfml-audio-2.dll \
         sfml-graphics-2.dll \
         sfml-window-2.dll \
         sfml-system-2.dll
@@ -99,5 +103,6 @@ win32 {
         QMAKE_POST_LINK += $$QMAKE_COPY $$shell_path($$SFML_BIN/$${dll}) $$shell_path($$DESTDIR/$${dll}) $$escape_expand(\n\t)
     }
 
+    QMAKE_POST_LINK += $$QMAKE_COPY $$shell_path($$SFML_BIN/openal32.dll) $$shell_path($$DESTDIR/openal32.dll) $$escape_expand(\n\t)
     QMAKE_POST_LINK += $$QMAKE_COPY_DIR $$shell_path($$PWD/Assets) $$shell_path($$DESTDIR/Assets) $$escape_expand(\n\t)
 }

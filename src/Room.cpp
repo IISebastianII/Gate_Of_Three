@@ -1,5 +1,6 @@
 #include "Room.h"
 
+#include "Enemy.h"
 #include "Player.h"
 #include "Projectile.h"
 
@@ -183,6 +184,11 @@ const std::vector<sf::FloatRect>& Room::getSolidColliders() const
 
 const RoomExit* Room::findTouchedExit(const sf::FloatRect& bounds) const
 {
+    if (hasLivingEnemies())
+    {
+        return nullptr;
+    }
+
     for (const auto& exit : exits_)
     {
         if (exit.overlaps(bounds))
@@ -192,6 +198,14 @@ const RoomExit* Room::findTouchedExit(const sf::FloatRect& bounds) const
     }
 
     return nullptr;
+}
+
+bool Room::hasLivingEnemies() const
+{
+    return std::any_of(objects_.begin(), objects_.end(), [](const auto& object) {
+        const auto* enemy = dynamic_cast<const Enemy*>(object.get());
+        return enemy != nullptr && enemy->isAlive() && enemy->canReceiveDamage();
+    });
 }
 
 void Room::damageObjectsInBounds(const sf::FloatRect& damageBounds, int damage, sf::Vector2f sourcePosition)

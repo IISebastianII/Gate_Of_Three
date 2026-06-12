@@ -10,7 +10,7 @@ if(WIN32 AND EXISTS "C:/SFML/lib/cmake/SFML")
     set(SFML_DIR "C:/SFML/lib/cmake/SFML" CACHE PATH "Path to SFML 2.x CMake config")
 endif()
 
-find_package(SFML 2 COMPONENTS graphics window system REQUIRED)
+find_package(SFML 2 COMPONENTS audio graphics window system REQUIRED)
 
 add_executable(GateOfThree
     src/main.cpp
@@ -65,7 +65,7 @@ add_executable(GateOfThree
 )
 
 target_include_directories(GateOfThree PRIVATE include)
-target_link_libraries(GateOfThree PRIVATE sfml-graphics sfml-window sfml-system)
+target_link_libraries(GateOfThree PRIVATE sfml-audio sfml-graphics sfml-window sfml-system)
 
 string(REPLACE "\\" "/" ASSET_ROOT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/Assets")
 target_compile_definitions(GateOfThree PRIVATE ASSET_ROOT="${ASSET_ROOT_PATH}")

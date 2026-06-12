@@ -161,19 +161,28 @@ void addAtlasSurfaceColliders(
         }
     }
 
-    for (std::size_t strip = 0; strip < surfaceTops.size(); ++strip)
+    for (std::size_t strip = 0; strip < surfaceTops.size();)
     {
         const float top = surfaceTops[strip];
         if (top == std::numeric_limits<float>::max())
         {
+            ++strip;
             continue;
+        }
+
+        std::size_t endStrip = strip + 1;
+        while (endStrip < surfaceTops.size()
+            && std::abs(surfaceTops[endStrip] - top) < 0.1f)
+        {
+            ++endStrip;
         }
 
         colliders.push_back({
             static_cast<float>(strip) * stripWidth,
             top,
-            stripWidth,
+            static_cast<float>(endStrip - strip) * stripWidth,
             roomHeight - top});
+        strip = endStrip;
     }
 }
 

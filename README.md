@@ -1,175 +1,129 @@
 # Gate of Three
 
-`Gate of Three` to projekt gry platformowej 2D tworzony w C++17 z użyciem biblioteki SFML 2.x. Gra jest rozwijana etapami, tak aby każdy kolejny milestone dodawał konkretną część rozgrywki albo architektury projektu.
+Gate of Three to krótka gra platformowo-akcyjna 2D stworzona jako projekt studencki w C++17 z użyciem biblioteki SFML 2.x.
 
-Aktualna wersja skupia się na fundamencie gry: poruszaniu postacią, podstawowej fizyce, pokojach, przejściach między lokacjami oraz strukturze kodu przygotowanej pod dalszą rozbudowę.
+Gracz przemierza kolejne pokoje, walczy z przeciwnikami i stopniowo przygotowuje się do walki z bossem. Projekt powstawał etapami. Najpierw został zrobiony podstawowy ruch i kolizje, a później dodane zostały pokoje, przeciwnicy, walka, zaklęcie, leczenie oraz finałowy boss.
+
+## Rozgrywka
+
+Gra zaczyna się w spokojnym pokoju tutorialowym, w którym można sprawdzić sterowanie i spotkać Cat NPC. Przy znaku znajdującym się po prawej stronie można przejść do pierwszego pokoju walki.
+
+W pokojach walki znajdują się dwa rodzaje przeciwników:
+
+- szkielety walczące z bliska,
+- mushroom enemy, który porusza się i strzela pociskami.
+
+Przejście do następnego pokoju jest możliwe dopiero po pokonaniu wszystkich przeciwników. Po pierwszej walce gracz trafia do pokoju ze skrzynią. Otwarcie skrzyni odblokowuje zaklęcie dalekiego zasięgu.
+
+Następnie gracz przechodzi przez drugi pokój walki i trafia do Heal Roomu. Znajduje się tam uzdrowisko, które po interakcji przywraca całe zdrowie gracza. Ostatnią lokacją jest Boss Room, gdzie czeka Crystal Golem. Po jego pokonaniu na ekranie pojawia się napis `YOU WIN!`.
+
+Jeśli gracz straci całe zdrowie, wraca do Tutorial Roomu i może rozpocząć grę ponownie.
+
+## Sterowanie
+
+| Klawisz | Akcja |
+| --- | --- |
+| `A` / strzałka w lewo | Ruch w lewo |
+| `D` / strzałka w prawo | Ruch w prawo |
+| `W` / strzałka w górę | Skok |
+| `Space` | Podstawowy atak |
+| `Q` | Zaklęcie dalekiego zasięgu po odblokowaniu |
+| `LAlt` | Slide / unik |
+| `E` | Interakcja ze znakiem, skrzynią lub uzdrowiskiem |
+| `Esc` | Zamknięcie gry |
+
+## Najważniejsze mechaniki
+
+- ruch postaci liczony z użyciem delta time,
+- skok, grawitacja i kolizje z podłożem,
+- obsługa zwykłych platform oraz nachylonych powierzchni,
+- kamera podążająca za graczem,
+- podstawowy atak wręcz,
+- slide działający jako unik,
+- zdrowie oraz mana gracza,
+- regeneracja jednego punktu many co 4 sekundy,
+- zaklęcie dalekiego zasięgu kosztujące 2 punkty many,
+- HUD pokazujący zdrowie, manę i odblokowane zaklęcie,
+- animacje gracza i przeciwników,
+- AI przeciwników walczących z bliska i na dystans,
+- blokowanie przejścia, dopóki w pokoju żyją przeciwnicy,
+- skrzynia odblokowująca zaklęcie,
+- uzdrowisko przywracające całe zdrowie,
+- walka z bossem,
+- ekran `GAME OVER`, restart gry oraz ekran zwycięstwa,
+- muzyka odtwarzana podczas gry.
+
+## Kolejność pokojów
+
+```text
+Tutorial Room
+    -> Battle Room 1
+    -> Chest Room
+    -> Battle Room 2
+    -> Heal Room
+    -> Boss Room
+```
+
+Każdy pokój posiada własną klasę i własne ustawienie tilemapy, dekoracji, kolizji oraz obiektów.
+
+## Struktura projektu
+
+Kod został podzielony na pliki nagłówkowe w folderze `include` oraz pliki źródłowe w folderze `src`.
+
+Najważniejsze klasy:
+
+- `Game` - tworzy okno, obsługuje główną pętlę gry, zdarzenia, kamerę, HUD i zmianę stanu gry,
+- `Player` - odpowiada za ruch, walkę, animacje, zdrowie, manę i zaklęcie,
+- `GameObject` - wspólna klasa bazowa dla obiektów występujących w pokojach,
+- `Entity` - klasa bazowa dla obiektów posiadających pozycję i hitbox,
+- `Room` - wspólna baza dla wszystkich pokojów,
+- `RoomManager` - tworzy i zmienia aktualny pokój,
+- `RoomExit` - obsługuje przejścia pomiędzy pokojami,
+- `Enemy` - podstawowe AI, animacje, obrażenia oraz walka przeciwników,
+- `Mushroom` - przeciwnik dystansowy posiadający własne pociski,
+- `Boss` - Crystal Golem znajdujący się w ostatnim pokoju,
+- `Chest` - interaktywna skrzynia odblokowująca zaklęcie,
+- `HealingSanctuary` - obiekt leczący gracza,
+- `Projectile` oraz `Spell` - obsługa zaklęcia gracza.
+
+Obiekty w pokojach są przechowywane przy użyciu smart pointerów. Projekt korzysta również z dziedziczenia i polimorfizmu, dzięki czemu nowe typy przeciwników lub obiektów można dodać bez przebudowy całej gry.
 
 ## Wymagania
 
-- C++17
-- SFML 2.x
-- Qt Creator
-- MinGW zgodny z używaną wersją SFML
+- C++17,
+- SFML 2.x,
+- Qt Creator z kompilatorem MinGW.
 
-Projekt można otworzyć w Qt Creatorze przez plik:
-
-```text
-GateOfThree.pro
-```
-
-Alternatywnie dostępny jest również plik:
-
-```text
-CMakeLists.txt
-```
-
-Domyślna konfiguracja zakłada, że SFML znajduje się w katalogu:
+Projekt był tworzony z SFML znajdującym się w katalogu:
 
 ```text
 C:/SFML
 ```
 
-Jeżeli SFML jest zainstalowany w innym miejscu, trzeba zmienić ścieżkę w konfiguracji projektu.
+Jeśli biblioteka znajduje się w innym miejscu, trzeba zmienić ścieżki w pliku `GateOfThree.pro` albo `CMakeLists.txt`.
 
-## Sterowanie
+## Uruchomienie w Qt Creator
 
-- `A` / `Left` - ruch w lewo
-- `D` / `Right` - ruch w prawo
-- `W` / `Up` - skok
-- `Space` - atak
-- `LAlt` - slide
-- `E` - interakcja z przejściem przy znaku
-- `Esc` - zamknięcie gry
+1. Otwórz plik `GateOfThree.pro` w Qt Creatorze.
+2. Wybierz zestaw MinGW zgodny z używaną wersją SFML.
+3. Uruchom konfigurację qmake.
+4. Zbuduj i uruchom projekt.
 
-## Obecny stan gry
+Podczas budowania wymagane biblioteki SFML oraz `openal32.dll` są kopiowane do katalogu z plikiem wykonywalnym. Folder `Assets` również jest kopiowany automatycznie.
 
-W aktualnej wersji gracz może poruszać się po pokoju tutorialowym, skakać, korzystać z podstawowych akcji postaci oraz przechodzić do drugiego pokoju przez interakcję ze znakiem. Drugi pokój pełni rolę prostego battle roomu testowego, w którym znajduje się pierwszy przeciwnik.
+Projekt można alternatywnie zbudować przy użyciu pliku `CMakeLists.txt`.
 
-Projekt zawiera już podstawowy system walki gracza oraz pierwszego przeciwnika z HP i animacjami reakcji na obrażenia. Rozbudowane AI, ataki przeciwników, mana, bossowie, skrzynie i zapis gry są przewidziane na kolejne etapy.
+## Zawartość projektu
 
-## Struktura projektu
+```text
+GateOfThree/
+|-- Assets/          grafiki, animacje, muzyka i pozostałe zasoby
+|-- include/         pliki nagłówkowe
+|-- src/             pliki źródłowe
+|-- CMakeLists.txt   konfiguracja CMake
+|-- GateOfThree.pro  konfiguracja qmake / Qt Creator
+|-- .gitignore
+`-- README.md
+```
 
-Kod jest podzielony na pliki `.h` i `.cpp`. Główne klasy zostały przygotowane tak, aby później można było rozwijać projekt bez przepisywania podstaw.
-
-Najważniejsze elementy:
-
-- `Game` - główna klasa gry, odpowiada za okno, pętlę gry, aktualizację i renderowanie
-- `Player` - klasa gracza, zawiera ruch, skok, grawitację, slide i atak
-- `GameObject` - wspólny interfejs dla obiektów gry
-- `Entity` - baza dla obiektów posiadających pozycję i kolizję
-- `Room` - bazowa klasa pokoju
-- `RoomManager` - zarządza aktualnym pokojem i zmianą lokacji
-- `RoomExit` - obiekt przejścia między pokojami
-- `Npc`, `Enemy`, `Boss`, `Chest`, `Projectile`, `Spell` - klasy startowe pod przyszłe systemy gry
-
-W projekcie są również przygotowane różne typy pokojów:
-
-- `TutorialRoom`
-- `BattleRoom`
-- `HealRoom`
-- `ChestRoom`
-- `BossRoom`
-
-Na ten moment grywalne są przede wszystkim `TutorialRoom` i prosty `BattleRoom`.
-
-## Milestone 1 - podstawowy fundament gry
-
-W pierwszym etapie powstała działająca baza projektu. Celem było uruchomienie grywalnego pokoju oraz sprawdzenie podstawowych mechanik ruchu.
-
-Zaimplementowano:
-
-- działający projekt C++17 + SFML
-- strukturę plików `.h` i `.cpp`
-- klasę `Game` z pętlą gry
-- obsługę delta time
-- okno gry i renderowanie
-- pierwszy pokój `TutorialRoom`
-- gracza widocznego na ekranie
-- ruch w lewo i prawo
-- skok
-- grawitację
-- kolizję z podłożem
-- prostą kamerę śledzącą gracza
-- podstawowe assety pokoju tutorialowego
-
-Po tym etapie gra uruchamiała się, pokazywała pierwszy pokój i pozwalała sterować postacią.
-
-## Milestone 2 - architektura projektu
-
-Drugi etap skupił się na uporządkowaniu kodu i przygotowaniu projektu pod dalszą rozbudowę. Nie chodziło jeszcze o dużą ilość zawartości, tylko o stworzenie czytelnego szkieletu.
-
-Zaimplementowano:
-
-- bazową klasę `GameObject`
-- bazową klasę `Entity`
-- bazową klasę `Room`
-- wspólny kontener obiektów gry oparty o smart pointery
-- `RoomManager` jako klasę zarządzającą pokojami
-- podstawowy podział pokojów według typu
-- klasy startowe dla NPC, przeciwników, bossów, skrzyń, pocisków i zaklęć
-- użycie dziedziczenia i polimorfizmu
-- strukturę przygotowaną pod kolejne systemy gameplayowe
-
-Po tym etapie projekt miał już bazę, która pozwala dodawać kolejne typy obiektów i pokojów bez trzymania całej logiki w jednym miejscu.
-
-## Milestone 3 - przejścia między pokojami
-
-Trzeci etap dodał pierwszą realną eksplorację między lokacjami. Gracz nie jest już ograniczony tylko do jednego pokoju.
-
-Zaimplementowano:
-
-- drugi grywalny pokój `BattleRoom`
-- obiekt `RoomExit`
-- przejście z `TutorialRoom` do `BattleRoom`
-- powrót z `BattleRoom` do `TutorialRoom`
-- interakcję klawiszem `E`
-- ustawianie pozycji gracza po zmianie pokoju
-- podstawowe tło i podłoże w battle roomie
-- poprawione skalowanie tła w obu pokojach
-- dopasowanie wysokości podłogi między pokojami
-
-Po tym etapie gracz może wejść w interakcję ze znakiem, zmienić pokój i wrócić do poprzedniej lokacji.
-
-## Milestone 4 - podstawowy system walki
-
-Czwarty etap dodał pierwszy działający system walki oraz przeciwnika testowego w battle roomie.
-
-Zaimplementowano:
-
-- atak gracza pod `Space`
-- hitbox ataku przed graczem
-- pierwszego przeciwnika `skeleton` w `BattleRoom`
-- punkty życia przeciwnika
-- animację `idle` przeciwnika
-- animację otrzymywania obrażeń `hurt`
-- animację śmierci `die`
-- usuwanie przeciwnika po zakończeniu animacji śmierci
-- krótką niewrażliwość przeciwnika po trafieniu
-- radialny wskaźnik HP przeciwnika
-- czerwone koło aktualnego HP i szary fragment utraconego HP
-- czarną obręcz wskaźnika HP
-- klasę `RadialHealthIndicator`
-
-Po tym etapie gracz może przejść do battle roomu, zaatakować skeletona, zmniejszyć jego HP i pokonać go.
-
-## Milestone 5 - AI przeciwników i rozwój battle roomu
-
-Piąty etap rozbudował walkę o podstawowe AI przeciwników oraz bardziej grywalny układ battle roomu.
-
-Zaimplementowano:
-
-- podstawowe AI przeciwnika `skeleton`
-- patrolowanie obszaru przez przeciwnika
-- wykrywanie gracza w określonym zasięgu
-- podchodzenie przeciwnika do gracza
-- atak melee przeciwnika
-- zadawanie obrażeń graczowi
-- punkty życia gracza
-- krótką niewrażliwość gracza po otrzymaniu obrażeń
-- slide pod `LAlt` jako unik przed obrażeniami
-- feedback obrażeń gracza przez zmianę koloru postaci
-- trzech przeciwników w `BattleRoom`
-- przebudowany przykładowy layout `BattleRoom`
-- naziemne stopnie i zróżnicowanie wysokości terenu
-- dekoracje w battle roomie
-- większy rozmiar battle roomu.
+Aktualna wersja zawiera pełną krótką ścieżkę rozgrywki od tutorialu do pokonania bossa. Projekt nadal można rozwijać o kolejne pokoje, przeciwników, zaklęcia oraz bardziej rozbudowaną fabułę.

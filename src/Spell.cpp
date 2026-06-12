@@ -1,19 +1,11 @@
 #include "Spell.h"
 
-#include <utility>
-
-Spell::Spell(std::string id, int damage, float projectileSpeed, float cooldown, int manaCost)
-    : id_(std::move(id))
-    , damage_(damage)
+Spell::Spell(int damage, float projectileSpeed, float cooldown, int manaCost)
+    : damage_(damage)
     , projectileSpeed_(projectileSpeed)
     , cooldown_(cooldown)
     , manaCost_(manaCost)
 {
-}
-
-const std::string& Spell::getId() const
-{
-    return id_;
 }
 
 int Spell::getDamage() const

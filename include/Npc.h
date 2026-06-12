@@ -29,7 +29,7 @@ private:
     void syncDrawable();
     void syncPlaceholder();
 
-    static constexpr float textureScale_ = 2.4f;
+    static constexpr float textureScale_ = 1.2f;
 
     std::vector<Frame> frames_;
     sf::Sprite sprite_;

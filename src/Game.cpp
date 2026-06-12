@@ -1,6 +1,7 @@
 #include "Game.h"
 
 #include "AssetPaths.h"
+#include "Room.h"
 
 #include <algorithm>
 
@@ -49,6 +50,13 @@ Game::Game()
     window_.setFramerateLimit(120);
     window_.setVerticalSyncEnabled(true);
     window_.setKeyRepeatEnabled(false);
+
+    if (backgroundMusic_.openFromFile(AssetPaths::resolve("Music/Background_song.mp3").string()))
+    {
+        backgroundMusic_.setLoop(true);
+        backgroundMusic_.setVolume(35.f);
+        backgroundMusic_.play();
+    }
 
     player_.setFeetPosition(roomManager_.getCurrentRoom().getPlayerSpawnFeet());
     hasGameOverFont_ = gameOverFont_.loadFromFile("C:/Windows/Fonts/arial.ttf");
@@ -193,6 +201,13 @@ void Game::update(float deltaTime)
     {
         room.damageObjectsInBounds(player_.getAttackBounds(), player_.getAttackDamage(), player_.getCenter());
     }
+
+    if (player_.isDead() && roomManager_.getCurrentRoomType() != RoomType::Tutorial)
+    {
+        roomManager_.changeRoom(RoomType::Tutorial);
+        player_.setDeadFeetPosition(roomManager_.getCurrentRoom().getPlayerSpawnFeet());
+    }
+
     updateCamera();
 }
 
@@ -493,12 +508,35 @@ void Game::renderHud()
             buttonBounds.top + buttonBounds.height * 0.5f);
         window_.draw(retryText);
     }
+
+    const Room& currentRoom = roomManager_.getCurrentRoom();
+    if (!player_.isDead()
+        && currentRoom.getType() == RoomType::Boss
+        && !currentRoom.hasLivingEnemies()
+        && hasGameOverFont_)
+    {
+        sf::Text winText;
+        winText.setFont(gameOverFont_);
+        winText.setString("YOU WIN!");
+        winText.setCharacterSize(76);
+        winText.setFillColor(sf::Color(245, 220, 105));
+        winText.setOutlineColor(sf::Color(20, 20, 20));
+        winText.setOutlineThickness(4.f);
+
+        const sf::FloatRect winBounds = winText.getLocalBounds();
+        winText.setOrigin(
+            winBounds.left + winBounds.width * 0.5f,
+            winBounds.top + winBounds.height * 0.5f);
+        winText.setPosition(
+            static_cast<float>(windowWidth) * 0.5f,
+            static_cast<float>(windowHeight) * 0.42f);
+        window_.draw(winText);
+    }
 }
 
 void Game::restartGame()
 {
-    const RoomType currentRoomType = roomManager_.getCurrentRoomType();
-    roomManager_.changeRoom(currentRoomType);
+    roomManager_.changeRoom(RoomType::Tutorial);
     player_.resetForRestart(roomManager_.getCurrentRoom().getPlayerSpawnFeet());
     updateCamera();
 }
