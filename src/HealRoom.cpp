@@ -114,7 +114,7 @@ void HealRoom::buildGeometry()
 
     RoomExit& bossExit = addExit(
         RoomType::Boss,
-        {160.f, 656.f},
+        {160.f, groundTop_},
         {roomSize_.x - tileSize_ * 3.f, groundTop_ - tileSize_, tileSize_ * 3.f, tileSize_ * 2.f});
     if (signTexture != textures_.end())
     {

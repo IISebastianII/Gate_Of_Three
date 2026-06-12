@@ -5,6 +5,7 @@
 
 #include <SFML/Graphics.hpp>
 
+#include <initializer_list>
 #include <map>
 #include <string>
 #include <vector>
@@ -38,10 +39,15 @@ private:
     };
 
     void loadAnimations(const std::string& animationRoot);
-    void loadFrameSeries(AnimationState state, const std::string& directory, int first, int last, float frameTime, bool loop);
+    void loadFrameSeries(AnimationState state, const std::vector<std::string>& directories, int first, int last, float frameTime, bool loop);
     void updateAi(float deltaTime, Player& player);
     void moveHorizontally(float deltaTime, const std::vector<sf::FloatRect>& solidColliders);
     void moveVertically(float deltaTime, const std::vector<sf::FloatRect>& solidColliders);
+protected:
+    bool updatePassiveState(float deltaTime);
+    void updateVisuals(float deltaTime);
+
+private:
     sf::Vector2f getCenter() const;
     sf::FloatRect getAttackBounds() const;
     bool isAttackActive() const;

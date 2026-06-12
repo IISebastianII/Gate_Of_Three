@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <cmath>
 #include <iomanip>
+#include <filesystem>
 #include <sstream>
 
 const sf::Vector2f Enemy::colliderSize_ = {52.f, 74.f};
@@ -37,11 +38,33 @@ Enemy::Enemy(sf::Vector2f feetPosition, const std::string& animationRoot)
 
 void Enemy::update(float deltaTime)
 {
-    updateAnimation(deltaTime);
-    syncDrawable();
+    if (updatePassiveState(deltaTime))
+    {
+        return;
+    }
+
+    updateVisuals(deltaTime);
 }
 
 void Enemy::update(float deltaTime, Player& player, const std::vector<sf::FloatRect>& solidColliders)
+{
+    if (!dying_)
+    {
+        updateAi(deltaTime, player);
+        moveHorizontally(deltaTime, solidColliders);
+        moveVertically(deltaTime, solidColliders);
+        tryHitPlayer(player);
+    }
+
+    if (updatePassiveState(deltaTime))
+    {
+        return;
+    }
+
+    updateVisuals(deltaTime);
+}
+
+bool Enemy::updatePassiveState(float deltaTime)
 {
     if (damageCooldown_ > 0.f)
     {
@@ -54,15 +77,8 @@ void Enemy::update(float deltaTime, Player& player, const std::vector<sf::FloatR
         if (deathTimer_ <= 0.f)
         {
             destroy();
-            return;
+            return true;
         }
-    }
-    else
-    {
-        updateAi(deltaTime, player);
-        moveHorizontally(deltaTime, solidColliders);
-        moveVertically(deltaTime, solidColliders);
-        tryHitPlayer(player);
     }
 
     if (attackCooldown_ > 0.f)
@@ -92,6 +108,11 @@ void Enemy::update(float deltaTime, Player& player, const std::vector<sf::FloatR
         setAnimationState(AnimationState::Idle);
     }
 
+    return false;
+}
+
+void Enemy::updateVisuals(float deltaTime)
+{
     updateAnimation(deltaTime);
     syncDrawable();
 }
@@ -149,35 +170,43 @@ bool Enemy::canReceiveDamage() const
 
 void Enemy::loadAnimations(const std::string& animationRoot)
 {
-    loadFrameSeries(AnimationState::Idle, animationRoot + "/idle", 0, 7, 0.12f, true);
-    loadFrameSeries(AnimationState::Walk, animationRoot + "/walk", 0, 9, 0.09f, true);
-    loadFrameSeries(AnimationState::Attack, animationRoot + "/atack", 0, 9, 0.065f, false);
-    loadFrameSeries(AnimationState::Hurt, animationRoot + "/hurt", 0, 4, 0.08f, false);
-    loadFrameSeries(AnimationState::Dead, animationRoot + "/die", 0, 12, 0.09f, false);
+    loadFrameSeries(AnimationState::Idle, {animationRoot + "/idle"}, 0, 7, 0.12f, true);
+    loadFrameSeries(AnimationState::Walk, {animationRoot + "/walk", animationRoot + "/run"}, 0, 9, 0.09f, true);
+    loadFrameSeries(AnimationState::Attack, {animationRoot + "/atack", animationRoot + "/attack"}, 0, 9, 0.065f, false);
+    loadFrameSeries(AnimationState::Hurt, {animationRoot + "/hurt"}, 0, 4, 0.08f, false);
+    loadFrameSeries(AnimationState::Dead, {animationRoot + "/die", animationRoot + "/dead"}, 0, 12, 0.09f, false);
 }
 
-void Enemy::loadFrameSeries(AnimationState state, const std::string& directory, int first, int last, float frameTime, bool loop)
+void Enemy::loadFrameSeries(AnimationState state, const std::vector<std::string>& directories, int first, int last, float frameTime, bool loop)
 {
-    Animation animation;
-    animation.frameTime = frameTime;
-    animation.loop = loop;
-
-    for (int frame = first; frame <= last; ++frame)
+    for (const auto& directory : directories)
     {
-        sf::Texture texture;
-        texture.setSmooth(false);
+        Animation animation;
+        animation.frameTime = frameTime;
+        animation.loop = loop;
 
-        const auto path = AssetPaths::resolve(directory + "/" + frameName(frame));
-        if (texture.loadFromFile(path.string()))
+        for (int frame = first; frame <= last; ++frame)
         {
-            texture.setSmooth(false);
-            animation.frames.push_back(texture);
-        }
-    }
+            const auto path = AssetPaths::resolve(directory + "/" + frameName(frame));
+            if (!std::filesystem::exists(path))
+            {
+                continue;
+            }
 
-    if (!animation.frames.empty())
-    {
-        animations_[state] = std::move(animation);
+            sf::Texture texture;
+            texture.setSmooth(false);
+            if (texture.loadFromFile(path.string()))
+            {
+                texture.setSmooth(false);
+                animation.frames.push_back(texture);
+            }
+        }
+
+        if (!animation.frames.empty())
+        {
+            animations_[state] = std::move(animation);
+            return;
+        }
     }
 }
 

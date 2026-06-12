@@ -2,6 +2,7 @@
 
 #include "AssetPaths.h"
 #include "Enemy.h"
+#include "Mushroom.h"
 
 BattleRoom::BattleRoom(RoomType type)
     : Room(type)
@@ -216,6 +217,10 @@ void BattleRoom::buildGeometry()
     }
 
     addObject<Enemy>(sf::Vector2f{tileCenterX(14), tileTop(1)});
+    if (type_ == RoomType::Battle)
+    {
+        addObject<Mushroom>(sf::Vector2f{tileCenterX(19), tileTop(2)});
+    }
     addObject<Enemy>(sf::Vector2f{tileCenterX(24), tileTop(1)});
     addObject<Enemy>(sf::Vector2f{tileCenterX(33), tileTop(1)});
 }

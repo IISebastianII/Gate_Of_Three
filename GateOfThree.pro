@@ -24,6 +24,7 @@ SOURCES += \
     src/GameObject.cpp \
     src/HealRoom.cpp \
     src/Npc.cpp \
+    src/Mushroom.cpp \
     src/Player.cpp \
     src/Projectile.cpp \
     src/RadialHealthIndicator.cpp \
@@ -47,6 +48,7 @@ HEADERS += \
     include/GameObject.h \
     include/HealRoom.h \
     include/Npc.h \
+    include/Mushroom.h \
     include/Player.h \
     include/Projectile.h \
     include/RadialHealthIndicator.h \

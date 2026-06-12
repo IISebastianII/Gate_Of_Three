@@ -2,10 +2,10 @@
 
 #include "Enemy.h"
 
-class Boss : public Enemy
+class Mushroom : public Enemy
 {
 public:
-    using Enemy::Enemy;
+    explicit Mushroom(sf::Vector2f feetPosition);
 
     void update(float deltaTime) override;
     void update(float deltaTime, Player& player, const std::vector<sf::FloatRect>& solidColliders) override;
