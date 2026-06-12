@@ -102,16 +102,6 @@ C:/SFML
 
 Jeśli biblioteka znajduje się w innym miejscu, trzeba zmienić ścieżki w pliku `GateOfThree.pro` albo `CMakeLists.txt`.
 
-## Uruchomienie w Qt Creator
-
-1. Otwórz plik `GateOfThree.pro` w Qt Creatorze.
-2. Wybierz zestaw MinGW zgodny z używaną wersją SFML.
-3. Uruchom konfigurację qmake.
-4. Zbuduj i uruchom projekt.
-
-Podczas budowania wymagane biblioteki SFML oraz `openal32.dll` są kopiowane do katalogu z plikiem wykonywalnym. Folder `Assets` również jest kopiowany automatycznie.
-
-Projekt można alternatywnie zbudować przy użyciu pliku `CMakeLists.txt`.
 
 ## Zawartość projektu
 
