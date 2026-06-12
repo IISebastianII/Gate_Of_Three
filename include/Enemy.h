@@ -13,7 +13,13 @@
 class Enemy : public Entity
 {
 public:
-    explicit Enemy(sf::Vector2f feetPosition, const std::string& animationRoot = "Animations/Enemy/skeleton");
+    explicit Enemy(
+        sf::Vector2f feetPosition,
+        const std::string& animationRoot = "Animations/Enemy/skeleton",
+        int maxHealth = 3,
+        int attackDamage = 1,
+        std::size_t attackActiveStartFrame = 4,
+        std::size_t attackActiveEndFrame = 6);
 
     void update(float deltaTime) override;
     void update(float deltaTime, Player& player, const std::vector<sf::FloatRect>& solidColliders) override;
@@ -69,14 +75,14 @@ private:
     static constexpr float attackInset_ = 24.f;
     static constexpr float preferredPlayerGap_ = 34.f;
     static constexpr float attackCooldownDuration_ = 0.95f;
-    static constexpr float attackActiveStart_ = 0.22f;
-    static constexpr float attackActiveEnd_ = 0.45f;
     static constexpr float gravity_ = 1850.f;
-    static constexpr int attackDamage_ = 1;
-    static constexpr int maxHealth_ = 3;
     static const sf::Vector2f colliderSize_;
 
-    int health_ = maxHealth_;
+    int maxHealth_ = 3;
+    int attackDamage_ = 1;
+    int health_ = 3;
+    std::size_t attackActiveStartFrame_ = 4;
+    std::size_t attackActiveEndFrame_ = 6;
     bool facingRight_ = false;
     bool onGround_ = false;
     bool dying_ = false;

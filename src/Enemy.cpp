@@ -21,7 +21,18 @@ std::string frameName(int frame)
 }
 }
 
-Enemy::Enemy(sf::Vector2f feetPosition, const std::string& animationRoot)
+Enemy::Enemy(
+    sf::Vector2f feetPosition,
+    const std::string& animationRoot,
+    int maxHealth,
+    int attackDamage,
+    std::size_t attackActiveStartFrame,
+    std::size_t attackActiveEndFrame)
+    : maxHealth_(std::max(1, maxHealth))
+    , attackDamage_(std::max(1, attackDamage))
+    , health_(maxHealth_)
+    , attackActiveStartFrame_(attackActiveStartFrame)
+    , attackActiveEndFrame_(std::max(attackActiveStartFrame, attackActiveEndFrame))
 {
     boundsSize_ = colliderSize_;
     position_ = {feetPosition.x - colliderSize_.x * 0.5f, feetPosition.y - colliderSize_.y};
@@ -359,8 +370,9 @@ bool Enemy::isAttackActive() const
         return false;
     }
 
-    const float elapsed = attackDuration_ - attackTimer_;
-    return elapsed >= attackActiveStart_ && elapsed <= attackActiveEnd_;
+    return currentState_ == AnimationState::Attack
+        && currentFrame_ >= attackActiveStartFrame_
+        && currentFrame_ <= attackActiveEndFrame_;
 }
 
 void Enemy::tryHitPlayer(Player& player)

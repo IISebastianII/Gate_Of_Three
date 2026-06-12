@@ -97,9 +97,7 @@ void BossRoom::buildGeometry()
         healExit.setTexture(signTexture->second, {tileSize_ * 1.5f, groundTop_}, tileScale_);
     }
 
-    addObject<Boss>(
-        sf::Vector2f{roomSize_.x * 0.68f, groundTop_},
-        "Animations/Enemy/crystal_golem");
+    addObject<Boss>(sf::Vector2f{roomSize_.x * 0.68f, groundTop_});
 }
 
 void BossRoom::loadTexture(const std::string& id, const std::string& relativePath)
