@@ -13,6 +13,9 @@ bool overlapsVerticalBand(const sf::FloatRect& rect, float bandTop, float bandHe
     return rect.top < bandTop + bandHeight && rect.top + rect.height > bandTop;
 }
 
+constexpr float longBlastHitBandHeight = 160.f;
+constexpr float longBlastRearReach = 160.f;
+
 float computeLightningLength(
     sf::Vector2f startPosition,
     sf::Vector2f direction,
@@ -220,8 +223,8 @@ Projectile& Room::spawnProjectile(sf::Vector2f startPosition, sf::Vector2f direc
         startPosition,
         direction,
         speed,
-        92.f,
-        120.f,
+        longBlastHitBandHeight,
+        longBlastRearReach,
         solidColliders_,
         objects_,
         hitTarget);

@@ -194,11 +194,13 @@ void Enemy::updateAi(float, Player& player)
     const sf::FloatRect playerBounds = player.getBounds();
     const sf::FloatRect enemyBounds = getBounds();
     const float distanceX = playerCenter.x - enemyCenter.x;
-    const float distanceY = std::abs(playerCenter.y - enemyCenter.y);
     const float edgeGap = distanceX >= 0.f
         ? playerBounds.left - (enemyBounds.left + enemyBounds.width)
         : enemyBounds.left - (playerBounds.left + playerBounds.width);
     const float clampedEdgeGap = std::max(0.f, edgeGap);
+    facingRight_ = distanceX > 0.f;
+    const sf::FloatRect attackBounds = getAttackBounds();
+    const bool playerWithinAttackZone = attackBounds.intersects(playerBounds);
 
     if (attacking_)
     {
@@ -207,19 +209,18 @@ void Enemy::updateAi(float, Player& player)
         return;
     }
 
-    if (clampedEdgeGap <= attackRange_ && distanceY <= attackHeight_ && attackCooldown_ <= 0.f)
+    if (attackCooldown_ <= 0.f && playerWithinAttackZone)
     {
         attacking_ = true;
         attackHitDone_ = false;
         attackDuration_ = animationDuration(AnimationState::Attack, 0.55f);
         attackTimer_ = attackDuration_;
-        facingRight_ = distanceX > 0.f;
         velocity_.x = 0.f;
         setAnimationState(AnimationState::Attack);
         return;
     }
 
-    if (std::abs(distanceX) <= detectionRange_ && distanceY <= 120.f)
+    if (std::abs(distanceX) <= detectionRange_ && clampedEdgeGap <= attackRange_ * 4.f)
     {
         facingRight_ = distanceX > 0.f;
         if (clampedEdgeGap <= preferredPlayerGap_)

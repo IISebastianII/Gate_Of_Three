@@ -143,6 +143,7 @@ void Player::setFeetPosition(sf::Vector2f feetPosition)
     spellProjectileSpawnRequested_ = false;
     spellProjectileSpawned_ = false;
     spellCooldownTimer_ = 0.f;
+    manaRegenerationTimer_ = 0.f;
     syncDrawable();
 }
 
@@ -180,6 +181,7 @@ bool Player::trySpendSpellResources()
 
     mana_ -= longBlastSpell_.getManaCost();
     spellCooldownTimer_ = longBlastSpell_.getCooldown();
+    manaRegenerationTimer_ = 0.f;
     return true;
 }
 
@@ -499,6 +501,20 @@ void Player::updateActionTimers(float deltaTime)
         spellCooldownTimer_ = std::max(0.f, spellCooldownTimer_ - deltaTime);
     }
 
+    if (mana_ < maxMana_)
+    {
+        manaRegenerationTimer_ += deltaTime;
+        while (manaRegenerationTimer_ >= manaRegenerationInterval_ && mana_ < maxMana_)
+        {
+            manaRegenerationTimer_ -= manaRegenerationInterval_;
+            ++mana_;
+        }
+    }
+    else
+    {
+        manaRegenerationTimer_ = 0.f;
+    }
+
     if (spellCasting_)
     {
         spellTimer_ -= deltaTime;
@@ -624,6 +640,7 @@ void Player::startDeath()
     slideTimer_ = 0.f;
     damageInvulnerabilityTimer_ = 0.f;
     spellCooldownTimer_ = 0.f;
+    manaRegenerationTimer_ = 0.f;
     velocity_.x = 0.f;
     setAnimationState(AnimationState::Death);
 }

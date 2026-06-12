@@ -92,12 +92,13 @@ private:
     static constexpr float maxStepHeight_ = 36.f;
     static constexpr float textureScale_ = 3.f;
     static constexpr float damageInvulnerabilityDuration_ = 0.85f;
+    static constexpr float manaRegenerationInterval_ = 4.f;
     static constexpr int maxHealth_ = 5;
-    static constexpr int maxMana_ = 3;
+    static constexpr int maxMana_ = 4;
     static constexpr std::size_t spellProjectileSpawnFrame_ = 3;
     static const sf::Vector2f colliderSize_;
 
-    Spell longBlastSpell_ = Spell("long_blast", 2, 860.f, 0.34f, 1);
+    Spell longBlastSpell_ = Spell("long_blast", 2, 860.f, 0.34f, 2);
     bool longBlastUnlocked_ = false;
     int health_ = maxHealth_;
     int mana_ = maxMana_;
@@ -121,6 +122,7 @@ private:
     float slideDirection_ = 1.f;
     float damageInvulnerabilityTimer_ = 0.f;
     float spellCooldownTimer_ = 0.f;
+    float manaRegenerationTimer_ = 0.f;
 
     std::map<AnimationState, Animation> animations_;
     AnimationState currentState_ = AnimationState::Idle;

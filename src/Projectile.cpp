@@ -109,30 +109,40 @@ bool Projectile::hasExpired() const
 
 void Projectile::loadVisualAnimation()
 {
-    const std::filesystem::path directory = AssetPaths::resolve("Animations/Player/long_speel_animation");
-    if (!std::filesystem::exists(directory) || !std::filesystem::is_directory(directory))
-    {
-        hasAnimatedVisual_ = false;
-        return;
-    }
+    const std::vector<std::filesystem::path> directories = {
+        AssetPaths::resolve("Animations/Player/long_speel_animation"),
+        AssetPaths::resolve("Animations/Player/long_spell_animation")
+    };
 
-    std::vector<std::filesystem::path> files;
-    for (const auto& entry : std::filesystem::directory_iterator(directory))
+    for (const auto& directory : directories)
     {
-        if (entry.is_regular_file() && entry.path().extension() == ".png")
+        if (!std::filesystem::exists(directory) || !std::filesystem::is_directory(directory))
         {
-            files.push_back(entry.path());
+            continue;
         }
-    }
 
-    std::sort(files.begin(), files.end());
-    for (const auto& file : files)
-    {
-        sf::Texture texture;
-        texture.setSmooth(false);
-        if (texture.loadFromFile(file.string()))
+        std::vector<std::filesystem::path> files;
+        for (const auto& entry : std::filesystem::directory_iterator(directory))
         {
-            frames_.push_back(std::move(texture));
+            if (entry.is_regular_file() && entry.path().extension() == ".png")
+            {
+                files.push_back(entry.path());
+            }
+        }
+
+        if (!files.empty())
+        {
+            std::sort(files.begin(), files.end());
+            for (const auto& file : files)
+            {
+                sf::Texture texture;
+                texture.setSmooth(false);
+                if (texture.loadFromFile(file.string()))
+                {
+                    frames_.push_back(std::move(texture));
+                }
+            }
+            break;
         }
     }
 
