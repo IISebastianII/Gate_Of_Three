@@ -130,13 +130,18 @@ void Player::setFeetPosition(sf::Vector2f feetPosition)
     attackQueued_ = false;
     slideQueued_ = false;
     attacking_ = false;
+    spellCasting_ = false;
     sliding_ = false;
     dead_ = false;
     attackTimer_ = 0.f;
     attackDuration_ = 0.f;
+    spellTimer_ = 0.f;
+    spellDuration_ = 0.f;
     slideTimer_ = 0.f;
     damageInvulnerabilityTimer_ = 0.f;
     spellCastRequested_ = false;
+    spellProjectileSpawnRequested_ = false;
+    spellProjectileSpawned_ = false;
     spellCooldownTimer_ = 0.f;
     syncDrawable();
 }
@@ -158,6 +163,13 @@ bool Player::consumeSpellCastRequest()
     return requested;
 }
 
+bool Player::consumeSpellProjectileSpawnRequest()
+{
+    const bool requested = spellProjectileSpawnRequested_;
+    spellProjectileSpawnRequested_ = false;
+    return requested;
+}
+
 bool Player::trySpendSpellResources()
 {
     if (dead_ || spellCooldownTimer_ > 0.f || mana_ < longBlastSpell_.getManaCost())
@@ -167,6 +179,26 @@ bool Player::trySpendSpellResources()
 
     mana_ -= longBlastSpell_.getManaCost();
     spellCooldownTimer_ = longBlastSpell_.getCooldown();
+    return true;
+}
+
+bool Player::beginSpellCast()
+{
+    if (dead_ || attacking_ || sliding_ || spellCasting_ || !trySpendSpellResources())
+    {
+        return false;
+    }
+
+    spellCasting_ = true;
+    spellProjectileSpawnRequested_ = false;
+    spellProjectileSpawned_ = false;
+    spellDuration_ = animationDuration(AnimationState::DashAttack, 0.7f);
+    spellTimer_ = spellDuration_;
+    setAnimationState(AnimationState::DashAttack);
+    velocity_.x = 0.f;
+    jumpQueued_ = false;
+    attackQueued_ = false;
+    slideQueued_ = false;
     return true;
 }
 
@@ -263,6 +295,7 @@ void Player::loadAnimations()
     loadFrameSeries(AnimationState::Jump, "Animations/Player/Jump", "Warrior_Jump_", 1, 3, 0.10f, false);
     loadFrameSeries(AnimationState::Fall, "Animations/Player/Fall", "Warrior_Fall_", 1, 3, 0.10f, true);
     loadFrameSeries(AnimationState::Attack, "Animations/Player/Attack", "Warrior_Attack_", 1, 12, 0.055f, false);
+    loadFrameSeries(AnimationState::DashAttack, "Animations/Player/Dash-Attack", "Warrior_Dash-Attack_", 1, 10, 0.055f, false);
     loadFrameSeries(AnimationState::Slide, "Animations/Player/Slide", "Warrior-Slide_", 1, 5, 0.07f, false);
     loadFrameSeries(AnimationState::Death, "Animations/Player/Death-Effect", "Warrior_Death_", 1, 11, 0.08f, false);
 }
@@ -294,6 +327,15 @@ void Player::loadFrameSeries(AnimationState state, const std::string& directory,
 
 void Player::applyInput()
 {
+    if (spellCasting_)
+    {
+        velocity_.x = 0.f;
+        jumpQueued_ = false;
+        attackQueued_ = false;
+        slideQueued_ = false;
+        return;
+    }
+
     if (attackQueued_ && !attacking_ && !sliding_)
     {
         attacking_ = true;
@@ -446,6 +488,19 @@ void Player::updateActionTimers(float deltaTime)
         spellCooldownTimer_ = std::max(0.f, spellCooldownTimer_ - deltaTime);
     }
 
+    if (spellCasting_)
+    {
+        spellTimer_ -= deltaTime;
+        if (spellTimer_ <= 0.f)
+        {
+            spellCasting_ = false;
+            spellTimer_ = 0.f;
+            spellDuration_ = 0.f;
+            spellProjectileSpawnRequested_ = false;
+            spellProjectileSpawned_ = false;
+        }
+    }
+
     if (attacking_)
     {
         attackTimer_ -= deltaTime;
@@ -473,6 +528,10 @@ void Player::updateAnimation(float deltaTime)
     if (dead_)
     {
         setAnimationState(AnimationState::Death);
+    }
+    else if (spellCasting_)
+    {
+        setAnimationState(AnimationState::DashAttack);
     }
     else if (sliding_)
     {
@@ -514,6 +573,13 @@ void Player::updateAnimation(float deltaTime)
             currentFrame_ = 0;
         }
     }
+
+    if (spellCasting_ && !spellProjectileSpawned_ && currentState_ == AnimationState::DashAttack
+        && currentFrame_ >= spellProjectileSpawnFrame_)
+    {
+        spellProjectileSpawnRequested_ = true;
+        spellProjectileSpawned_ = true;
+    }
 }
 
 void Player::setAnimationState(AnimationState state)
@@ -532,13 +598,18 @@ void Player::startDeath()
 {
     dead_ = true;
     attacking_ = false;
+    spellCasting_ = false;
     sliding_ = false;
     jumpQueued_ = false;
     attackQueued_ = false;
     slideQueued_ = false;
     spellCastRequested_ = false;
+    spellProjectileSpawnRequested_ = false;
+    spellProjectileSpawned_ = false;
     attackTimer_ = 0.f;
     attackDuration_ = 0.f;
+    spellTimer_ = 0.f;
+    spellDuration_ = 0.f;
     slideTimer_ = 0.f;
     damageInvulnerabilityTimer_ = 0.f;
     spellCooldownTimer_ = 0.f;

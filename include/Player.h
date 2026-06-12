@@ -25,7 +25,9 @@ public:
     void setFeetPosition(sf::Vector2f feetPosition);
     void resetForRestart(sf::Vector2f feetPosition);
     bool consumeSpellCastRequest();
+    bool consumeSpellProjectileSpawnRequest();
     bool trySpendSpellResources();
+    bool beginSpellCast();
     sf::Vector2f getCenter() const;
     sf::Vector2f getFacingDirection() const;
     sf::Vector2f getSpellSpawnPosition() const;
@@ -49,6 +51,7 @@ private:
         Jump,
         Fall,
         Attack,
+        DashAttack,
         Slide,
         Death
     };
@@ -89,9 +92,10 @@ private:
     static constexpr float damageInvulnerabilityDuration_ = 0.85f;
     static constexpr int maxHealth_ = 5;
     static constexpr int maxMana_ = 3;
+    static constexpr std::size_t spellProjectileSpawnFrame_ = 3;
     static const sf::Vector2f colliderSize_;
 
-    Spell longBlastSpell_ = Spell("long_blast", 1, 860.f, 0.34f, 1);
+    Spell longBlastSpell_ = Spell("long_blast", 2, 860.f, 0.34f, 1);
     int health_ = maxHealth_;
     int mana_ = maxMana_;
     bool facingRight_ = true;
@@ -100,11 +104,16 @@ private:
     bool attackQueued_ = false;
     bool slideQueued_ = false;
     bool spellCastRequested_ = false;
+    bool spellProjectileSpawnRequested_ = false;
+    bool spellProjectileSpawned_ = false;
     bool attacking_ = false;
+    bool spellCasting_ = false;
     bool sliding_ = false;
     bool dead_ = false;
     float attackTimer_ = 0.f;
     float attackDuration_ = 0.f;
+    float spellTimer_ = 0.f;
+    float spellDuration_ = 0.f;
     float slideTimer_ = 0.f;
     float slideDirection_ = 1.f;
     float damageInvulnerabilityTimer_ = 0.f;

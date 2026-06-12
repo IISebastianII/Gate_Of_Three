@@ -149,6 +149,15 @@ void Game::update(float deltaTime)
     {
         room.tryCastSpell(player_);
     }
+    if (player_.consumeSpellProjectileSpawnRequest())
+    {
+        const Spell& spell = player_.getLongBlastSpell();
+        room.spawnProjectile(
+            player_.getSpellSpawnPosition(),
+            player_.getFacingDirection(),
+            spell.getProjectileSpeed(),
+            spell.getDamage());
+    }
     room.update(deltaTime, player_);
     if (player_.isAttackActive())
     {

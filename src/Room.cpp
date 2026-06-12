@@ -4,14 +4,109 @@
 #include "Projectile.h"
 
 #include <algorithm>
-#include <limits>
 #include <utility>
 
 namespace
 {
-sf::Vector2f rectCenter(const sf::FloatRect& rect)
+bool overlapsVerticalBand(const sf::FloatRect& rect, float bandTop, float bandHeight)
 {
-    return {rect.left + rect.width * 0.5f, rect.top + rect.height * 0.5f};
+    return rect.top < bandTop + bandHeight && rect.top + rect.height > bandTop;
+}
+
+float computeLightningLength(
+    sf::Vector2f startPosition,
+    sf::Vector2f direction,
+    float maxRange,
+    float thickness,
+    float rearReach,
+    const std::vector<sf::FloatRect>& solidColliders,
+    const std::vector<std::unique_ptr<GameObject>>& objects,
+    GameObject*& hitTarget)
+{
+    const bool right = direction.x >= 0.f;
+    const float bandTop = startPosition.y - thickness * 0.5f;
+    float strikeLength = std::max(0.f, maxRange);
+    float rearLimit = std::max(0.f, rearReach);
+    hitTarget = nullptr;
+
+    for (const auto& solid : solidColliders)
+    {
+        if (!overlapsVerticalBand(solid, bandTop, thickness))
+        {
+            continue;
+        }
+
+        const float blockerDistance = right
+            ? solid.left - startPosition.x
+            : startPosition.x - (solid.left + solid.width);
+        if (blockerDistance >= 0.f && blockerDistance < strikeLength)
+        {
+            strikeLength = blockerDistance;
+        }
+
+        const float rearBlockerDistance = right
+            ? startPosition.x - (solid.left + solid.width)
+            : solid.left - startPosition.x;
+        if (rearBlockerDistance >= 0.f && rearBlockerDistance < rearLimit)
+        {
+            rearLimit = rearBlockerDistance;
+        }
+    }
+
+    float bestTargetDistance = strikeLength;
+    for (const auto& object : objects)
+    {
+        if (!object->isAlive() || !object->canReceiveDamage())
+        {
+            continue;
+        }
+
+        const sf::FloatRect bounds = object->getBounds();
+        if (!overlapsVerticalBand(bounds, bandTop, thickness))
+        {
+            continue;
+        }
+
+        const float targetDistance = right
+            ? bounds.left - startPosition.x
+            : startPosition.x - (bounds.left + bounds.width);
+        if (targetDistance >= 0.f && targetDistance < bestTargetDistance)
+        {
+            bestTargetDistance = targetDistance;
+            hitTarget = object.get();
+        }
+    }
+
+    if (hitTarget != nullptr)
+    {
+        return bestTargetDistance;
+    }
+
+    float bestRearTargetDistance = rearLimit;
+    for (const auto& object : objects)
+    {
+        if (!object->isAlive() || !object->canReceiveDamage())
+        {
+            continue;
+        }
+
+        const sf::FloatRect bounds = object->getBounds();
+        if (!overlapsVerticalBand(bounds, bandTop, thickness))
+        {
+            continue;
+        }
+
+        const float rearTargetDistance = right
+            ? startPosition.x - (bounds.left + bounds.width)
+            : bounds.left - startPosition.x;
+        if (rearTargetDistance >= 0.f && rearTargetDistance < bestRearTargetDistance)
+        {
+            bestRearTargetDistance = rearTargetDistance;
+            hitTarget = object.get();
+        }
+    }
+
+    return bestTargetDistance;
 }
 }
 
@@ -120,7 +215,24 @@ void Room::interactObjectsInBounds(const sf::FloatRect& interactionBounds)
 
 Projectile& Room::spawnProjectile(sf::Vector2f startPosition, sf::Vector2f direction, float speed, int damage)
 {
-    auto projectile = std::make_unique<Projectile>(startPosition, direction, speed, damage);
+    GameObject* hitTarget = nullptr;
+    const float strikeLength = computeLightningLength(
+        startPosition,
+        direction,
+        speed,
+        92.f,
+        120.f,
+        solidColliders_,
+        objects_,
+        hitTarget);
+
+    if (hitTarget != nullptr)
+    {
+        hitTarget->receiveDamage(damage, startPosition);
+    }
+
+    auto projectile = std::make_unique<Projectile>(startPosition, direction, strikeLength, damage);
+    projectile->setBeamLength(std::max(24.f, strikeLength));
     Projectile& reference = *projectile;
     objects_.push_back(std::move(projectile));
     return reference;
@@ -128,73 +240,12 @@ Projectile& Room::spawnProjectile(sf::Vector2f startPosition, sf::Vector2f direc
 
 bool Room::tryCastSpell(Player& player)
 {
-    if (!player.trySpendSpellResources())
-    {
-        return false;
-    }
-
-    const Spell& spell = player.getLongBlastSpell();
-    spawnProjectile(
-        player.getSpellSpawnPosition(),
-        player.getFacingDirection(),
-        spell.getProjectileSpeed(),
-        spell.getDamage());
-    return true;
+    return player.beginSpellCast();
 }
 
 void Room::updateProjectileCollisions()
 {
-    const sf::FloatRect worldBounds = getBounds();
-
-    for (const auto& object : objects_)
-    {
-        Projectile* projectile = dynamic_cast<Projectile*>(object.get());
-        if (projectile == nullptr || !projectile->isAlive())
-        {
-            continue;
-        }
-
-        const sf::FloatRect projectileBounds = projectile->getBounds();
-        if (!projectileBounds.intersects(worldBounds))
-        {
-            projectile->destroy();
-            continue;
-        }
-
-        bool hitSolid = false;
-        for (const auto& solid : solidColliders_)
-        {
-            if (projectileBounds.intersects(solid))
-            {
-                hitSolid = true;
-                break;
-            }
-        }
-
-        if (hitSolid)
-        {
-            projectile->destroy();
-            continue;
-        }
-
-        for (auto& target : objects_)
-        {
-            if (target.get() == projectile || !target->isAlive() || !target->canReceiveDamage())
-            {
-                continue;
-            }
-
-            const sf::FloatRect targetBounds = target->getBounds();
-            if (!projectileBounds.intersects(targetBounds))
-            {
-                continue;
-            }
-
-            target->receiveDamage(projectile->getDamage(), rectCenter(projectileBounds));
-            projectile->destroy();
-            break;
-        }
-    }
+    // Lightning strike damage is resolved on spawn; projectiles only age out here.
 }
 
 void Room::removeDestroyedObjects()
