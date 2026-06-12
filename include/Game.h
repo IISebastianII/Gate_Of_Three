@@ -39,6 +39,12 @@ private:
     sf::View gameView_;
     RoomManager roomManager_;
     Player player_;
+    sf::Texture menuBackgroundTexture_;
+    sf::Texture menuPanelTexture_;
+    sf::Texture menuTitleTexture_;
+    sf::Texture menuButtonNormalTexture_;
+    sf::Texture menuButtonHoverTexture_;
+    sf::Texture menuButtonPressedTexture_;
     sf::Font gameOverFont_;
     sf::Texture longBlastIconTexture_;
     sf::Sprite longBlastIconSprite_;
