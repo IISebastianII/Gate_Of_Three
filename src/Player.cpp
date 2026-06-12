@@ -55,6 +55,11 @@ void Player::handleEvent(const sf::Event& event)
     {
         slideQueued_ = true;
     }
+
+    if (event.key.code == sf::Keyboard::Q)
+    {
+        spellCastRequested_ = true;
+    }
 }
 
 void Player::update(float deltaTime, const std::vector<sf::FloatRect>& solidColliders, const sf::FloatRect& worldBounds)
@@ -131,6 +136,8 @@ void Player::setFeetPosition(sf::Vector2f feetPosition)
     attackDuration_ = 0.f;
     slideTimer_ = 0.f;
     damageInvulnerabilityTimer_ = 0.f;
+    spellCastRequested_ = false;
+    spellCooldownTimer_ = 0.f;
     syncDrawable();
 }
 
@@ -138,14 +145,53 @@ void Player::resetForRestart(sf::Vector2f feetPosition)
 {
     setFeetPosition(feetPosition);
     health_ = maxHealth_;
+    mana_ = maxMana_;
     dead_ = false;
     setAnimationState(AnimationState::Idle);
     syncDrawable();
 }
 
+bool Player::consumeSpellCastRequest()
+{
+    const bool requested = spellCastRequested_;
+    spellCastRequested_ = false;
+    return requested;
+}
+
+bool Player::trySpendSpellResources()
+{
+    if (dead_ || spellCooldownTimer_ > 0.f || mana_ < longBlastSpell_.getManaCost())
+    {
+        return false;
+    }
+
+    mana_ -= longBlastSpell_.getManaCost();
+    spellCooldownTimer_ = longBlastSpell_.getCooldown();
+    return true;
+}
+
 sf::Vector2f Player::getCenter() const
 {
     return {position_.x + colliderSize_.x * 0.5f, position_.y + colliderSize_.y * 0.5f};
+}
+
+sf::Vector2f Player::getFacingDirection() const
+{
+    return {facingRight_ ? 1.f : -1.f, 0.f};
+}
+
+sf::Vector2f Player::getSpellSpawnPosition() const
+{
+    const float horizontalOffset = colliderSize_.x * 0.5f + 18.f;
+    return {
+        getCenter().x + (facingRight_ ? horizontalOffset : -horizontalOffset),
+        position_.y + colliderSize_.y * 0.5f
+    };
+}
+
+const Spell& Player::getLongBlastSpell() const
+{
+    return longBlastSpell_;
 }
 
 sf::FloatRect Player::getBounds() const
@@ -198,6 +244,16 @@ int Player::getHealth() const
 int Player::getMaxHealth() const
 {
     return maxHealth_;
+}
+
+int Player::getMana() const
+{
+    return mana_;
+}
+
+int Player::getMaxMana() const
+{
+    return maxMana_;
 }
 
 void Player::loadAnimations()
@@ -385,6 +441,11 @@ void Player::updateActionTimers(float deltaTime)
         damageInvulnerabilityTimer_ = std::max(0.f, damageInvulnerabilityTimer_ - deltaTime);
     }
 
+    if (spellCooldownTimer_ > 0.f)
+    {
+        spellCooldownTimer_ = std::max(0.f, spellCooldownTimer_ - deltaTime);
+    }
+
     if (attacking_)
     {
         attackTimer_ -= deltaTime;
@@ -475,10 +536,12 @@ void Player::startDeath()
     jumpQueued_ = false;
     attackQueued_ = false;
     slideQueued_ = false;
+    spellCastRequested_ = false;
     attackTimer_ = 0.f;
     attackDuration_ = 0.f;
     slideTimer_ = 0.f;
     damageInvulnerabilityTimer_ = 0.f;
+    spellCooldownTimer_ = 0.f;
     velocity_.x = 0.f;
     setAnimationState(AnimationState::Death);
 }

@@ -5,12 +5,19 @@
 class Spell
 {
 public:
-    Spell(std::string id, float manaCost);
+    Spell() = default;
+    Spell(std::string id, int damage, float projectileSpeed, float cooldown, int manaCost);
 
     const std::string& getId() const;
-    float getManaCost() const;
+    int getDamage() const;
+    float getProjectileSpeed() const;
+    float getCooldown() const;
+    int getManaCost() const;
 
 private:
     std::string id_;
-    float manaCost_ = 0.f;
+    int damage_ = 0;
+    float projectileSpeed_ = 0.f;
+    float cooldown_ = 0.f;
+    int manaCost_ = 0;
 };

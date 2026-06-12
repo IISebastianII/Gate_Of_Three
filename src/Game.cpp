@@ -145,6 +145,10 @@ void Game::update(float deltaTime)
 {
     Room& room = roomManager_.getCurrentRoom();
     player_.update(deltaTime, room.getSolidColliders(), room.getBounds());
+    if (player_.consumeSpellCastRequest())
+    {
+        room.tryCastSpell(player_);
+    }
     room.update(deltaTime, player_);
     if (player_.isAttackActive())
     {
@@ -172,7 +176,7 @@ void Game::renderHud()
 
     const float maxHealth = static_cast<float>(std::max(1, player_.getMaxHealth()));
     const float healthRatio = std::clamp(static_cast<float>(player_.getHealth()) / maxHealth, 0.f, 1.f);
-    const float manaRatio = 1.f;
+    const float manaRatio = static_cast<float>(player_.getMana()) / static_cast<float>(std::max(1, player_.getMaxMana()));
 
     const auto drawBar = [&](float top, float ratio, const sf::Color& fillColor)
     {

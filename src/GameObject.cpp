@@ -18,6 +18,11 @@ void GameObject::receiveDamage(int, sf::Vector2f)
 {
 }
 
+bool GameObject::canReceiveDamage() const
+{
+    return false;
+}
+
 void GameObject::interact()
 {
 }

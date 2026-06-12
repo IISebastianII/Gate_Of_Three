@@ -18,6 +18,7 @@ public:
     void update(float deltaTime, Player& player, const std::vector<sf::FloatRect>& solidColliders) override;
     void draw(sf::RenderTarget& target) const override;
     void receiveDamage(int damage, sf::Vector2f sourcePosition) override;
+    bool canReceiveDamage() const override;
 
 private:
     enum class AnimationState

@@ -10,6 +10,7 @@
 #include <vector>
 
 class Player;
+class Projectile;
 
 class Room
 {
@@ -31,6 +32,8 @@ public:
     const RoomExit* findTouchedExit(const sf::FloatRect& bounds) const;
     void damageObjectsInBounds(const sf::FloatRect& damageBounds, int damage, sf::Vector2f sourcePosition);
     void interactObjectsInBounds(const sf::FloatRect& interactionBounds);
+    Projectile& spawnProjectile(sf::Vector2f startPosition, sf::Vector2f direction, float speed, int damage);
+    bool tryCastSpell(Player& player);
 
 protected:
     template <typename ObjectType, typename... Args>
@@ -43,6 +46,7 @@ protected:
     }
 
     void removeDestroyedObjects();
+    void updateProjectileCollisions();
     RoomExit& addExit(RoomType targetRoom, sf::Vector2f targetSpawnFeet, const sf::FloatRect& triggerBounds);
 
     RoomType type_;

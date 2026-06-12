@@ -142,6 +142,11 @@ void Enemy::receiveDamage(int damage, sf::Vector2f sourcePosition)
     setAnimationState(AnimationState::Hurt);
 }
 
+bool Enemy::canReceiveDamage() const
+{
+    return true;
+}
+
 void Enemy::loadAnimations(const std::string& animationRoot)
 {
     loadFrameSeries(AnimationState::Idle, animationRoot + "/idle", 0, 7, 0.12f, true);

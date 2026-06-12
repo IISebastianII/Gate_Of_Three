@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Entity.h"
+#include "Spell.h"
 
 #include <SFML/Graphics.hpp>
 
@@ -23,7 +24,12 @@ public:
 
     void setFeetPosition(sf::Vector2f feetPosition);
     void resetForRestart(sf::Vector2f feetPosition);
+    bool consumeSpellCastRequest();
+    bool trySpendSpellResources();
     sf::Vector2f getCenter() const;
+    sf::Vector2f getFacingDirection() const;
+    sf::Vector2f getSpellSpawnPosition() const;
+    const Spell& getLongBlastSpell() const;
     sf::FloatRect getBounds() const override;
     sf::FloatRect getAttackBounds() const;
     bool isAttackActive() const;
@@ -32,6 +38,8 @@ public:
     int getAttackDamage() const;
     int getHealth() const;
     int getMaxHealth() const;
+    int getMana() const;
+    int getMaxMana() const;
 
 private:
     enum class AnimationState
@@ -80,14 +88,18 @@ private:
     static constexpr float textureScale_ = 3.f;
     static constexpr float damageInvulnerabilityDuration_ = 0.85f;
     static constexpr int maxHealth_ = 5;
+    static constexpr int maxMana_ = 3;
     static const sf::Vector2f colliderSize_;
 
+    Spell longBlastSpell_ = Spell("long_blast", 1, 860.f, 0.34f, 1);
     int health_ = maxHealth_;
+    int mana_ = maxMana_;
     bool facingRight_ = true;
     bool onGround_ = false;
     bool jumpQueued_ = false;
     bool attackQueued_ = false;
     bool slideQueued_ = false;
+    bool spellCastRequested_ = false;
     bool attacking_ = false;
     bool sliding_ = false;
     bool dead_ = false;
@@ -96,6 +108,7 @@ private:
     float slideTimer_ = 0.f;
     float slideDirection_ = 1.f;
     float damageInvulnerabilityTimer_ = 0.f;
+    float spellCooldownTimer_ = 0.f;
 
     std::map<AnimationState, Animation> animations_;
     AnimationState currentState_ = AnimationState::Idle;

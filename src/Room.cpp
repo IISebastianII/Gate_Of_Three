@@ -1,7 +1,19 @@
 #include "Room.h"
 
+#include "Player.h"
+#include "Projectile.h"
+
 #include <algorithm>
+#include <limits>
 #include <utility>
+
+namespace
+{
+sf::Vector2f rectCenter(const sf::FloatRect& rect)
+{
+    return {rect.left + rect.width * 0.5f, rect.top + rect.height * 0.5f};
+}
+}
 
 Room::Room(RoomType type)
     : type_(type)
@@ -23,6 +35,7 @@ void Room::update(float deltaTime)
         object->update(deltaTime);
     }
 
+    updateProjectileCollisions();
     removeDestroyedObjects();
 }
 
@@ -33,6 +46,7 @@ void Room::update(float deltaTime, Player& player)
         object->update(deltaTime, player, solidColliders_);
     }
 
+    updateProjectileCollisions();
     removeDestroyedObjects();
 }
 
@@ -86,7 +100,7 @@ void Room::damageObjectsInBounds(const sf::FloatRect& damageBounds, int damage, 
 {
     for (auto& object : objects_)
     {
-        if (object->isAlive() && damageBounds.intersects(object->getBounds()))
+        if (object->isAlive() && object->canReceiveDamage() && damageBounds.intersects(object->getBounds()))
         {
             object->receiveDamage(damage, sourcePosition);
         }
@@ -100,6 +114,85 @@ void Room::interactObjectsInBounds(const sf::FloatRect& interactionBounds)
         if (object->isAlive() && interactionBounds.intersects(object->getBounds()))
         {
             object->interact();
+        }
+    }
+}
+
+Projectile& Room::spawnProjectile(sf::Vector2f startPosition, sf::Vector2f direction, float speed, int damage)
+{
+    auto projectile = std::make_unique<Projectile>(startPosition, direction, speed, damage);
+    Projectile& reference = *projectile;
+    objects_.push_back(std::move(projectile));
+    return reference;
+}
+
+bool Room::tryCastSpell(Player& player)
+{
+    if (!player.trySpendSpellResources())
+    {
+        return false;
+    }
+
+    const Spell& spell = player.getLongBlastSpell();
+    spawnProjectile(
+        player.getSpellSpawnPosition(),
+        player.getFacingDirection(),
+        spell.getProjectileSpeed(),
+        spell.getDamage());
+    return true;
+}
+
+void Room::updateProjectileCollisions()
+{
+    const sf::FloatRect worldBounds = getBounds();
+
+    for (const auto& object : objects_)
+    {
+        Projectile* projectile = dynamic_cast<Projectile*>(object.get());
+        if (projectile == nullptr || !projectile->isAlive())
+        {
+            continue;
+        }
+
+        const sf::FloatRect projectileBounds = projectile->getBounds();
+        if (!projectileBounds.intersects(worldBounds))
+        {
+            projectile->destroy();
+            continue;
+        }
+
+        bool hitSolid = false;
+        for (const auto& solid : solidColliders_)
+        {
+            if (projectileBounds.intersects(solid))
+            {
+                hitSolid = true;
+                break;
+            }
+        }
+
+        if (hitSolid)
+        {
+            projectile->destroy();
+            continue;
+        }
+
+        for (auto& target : objects_)
+        {
+            if (target.get() == projectile || !target->isAlive() || !target->canReceiveDamage())
+            {
+                continue;
+            }
+
+            const sf::FloatRect targetBounds = target->getBounds();
+            if (!projectileBounds.intersects(targetBounds))
+            {
+                continue;
+            }
+
+            target->receiveDamage(projectile->getDamage(), rectCenter(projectileBounds));
+            projectile->destroy();
+            break;
         }
     }
 }
