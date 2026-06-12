@@ -158,6 +158,14 @@ void Player::resetForRestart(sf::Vector2f feetPosition)
     syncDrawable();
 }
 
+void Player::healToFull()
+{
+    if (!dead_)
+    {
+        health_ = maxHealth_;
+    }
+}
+
 bool Player::consumeSpellCastRequest()
 {
     const bool requested = spellCastRequested_;

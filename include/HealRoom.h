@@ -8,11 +8,14 @@
 #include <string>
 #include <vector>
 
+class HealingSanctuary;
+
 class HealRoom : public Room
 {
 public:
     HealRoom();
 
+    void update(float deltaTime, Player& player) override;
     void draw(sf::RenderTarget& target) const override;
     sf::Vector2f getPlayerSpawnFeet() const override;
 
@@ -31,6 +34,7 @@ private:
     std::map<std::string, sf::Texture> textures_;
     bool hasBackground_ = false;
     bool hasTiles_ = false;
+    HealingSanctuary* sanctuary_ = nullptr;
 
     sf::Sprite background_;
     sf::RectangleShape ground_;

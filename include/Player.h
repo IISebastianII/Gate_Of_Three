@@ -24,6 +24,7 @@ public:
 
     void setFeetPosition(sf::Vector2f feetPosition);
     void resetForRestart(sf::Vector2f feetPosition);
+    void healToFull();
     bool consumeSpellCastRequest();
     bool consumeSpellProjectileSpawnRequest();
     bool trySpendSpellResources();

@@ -24,6 +24,7 @@ add_executable(GateOfThree
     src/Entity.cpp
     src/Game.cpp
     src/GameObject.cpp
+    src/HealingSanctuary.cpp
     src/HealRoom.cpp
     src/Npc.cpp
     src/Mushroom.cpp
@@ -45,6 +46,7 @@ add_executable(GateOfThree
     include/Entity.h
     include/Game.h
     include/GameObject.h
+    include/HealingSanctuary.h
     include/HealRoom.h
     include/Npc.h
     include/Mushroom.h

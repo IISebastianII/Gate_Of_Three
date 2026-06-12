@@ -1,6 +1,8 @@
 #include "HealRoom.h"
 
 #include "AssetPaths.h"
+#include "HealingSanctuary.h"
+#include "Player.h"
 
 #include <algorithm>
 #include <utility>
@@ -12,6 +14,15 @@ HealRoom::HealRoom()
     clearColor_ = sf::Color(190, 220, 210);
     loadTextures();
     buildGeometry();
+}
+
+void HealRoom::update(float deltaTime, Player& player)
+{
+    Room::update(deltaTime, player);
+    if (sanctuary_ != nullptr && sanctuary_->consumeHealingRequest())
+    {
+        player.healToFull();
+    }
 }
 
 void HealRoom::draw(sf::RenderTarget& target) const
@@ -58,7 +69,6 @@ void HealRoom::loadTextures()
     loadTexture("grass", "Tiles/grass/grass.png");
     loadTexture("dirt", "Tiles/grass/dirt_inside_filling.png");
     loadTexture("sign", "decors/sign.png");
-    loadTexture("sanctuary", "decors/Sanctuary_Healing_Statue.png");
     loadTexture("bush", "decors/bush.png");
 
     hasTiles_ = textures_.count("grass") > 0 && textures_.count("dirt") > 0;
@@ -97,7 +107,7 @@ void HealRoom::buildGeometry()
         }
     }
 
-    addSprite("sanctuary", {roomSize_.x * 0.5f, groundTop_}, tileScale_);
+    sanctuary_ = &addObject<HealingSanctuary>(sf::Vector2f{roomSize_.x * 0.5f, groundTop_});
     addSprite("bush", {roomSize_.x * 0.35f, groundTop_}, tileScale_);
     addSprite("bush", {roomSize_.x * 0.65f, groundTop_}, tileScale_);
 
