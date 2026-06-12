@@ -9,8 +9,6 @@
 #include <filesystem>
 #include <sstream>
 
-const sf::Vector2f Enemy::colliderSize_ = {52.f, 74.f};
-
 namespace
 {
 std::string frameName(int frame)
@@ -21,18 +19,28 @@ std::string frameName(int frame)
 }
 }
 
-Enemy::Enemy(
-    sf::Vector2f feetPosition,
-    const std::string& animationRoot,
-    int maxHealth,
-    int attackDamage,
-    std::size_t attackActiveStartFrame,
-    std::size_t attackActiveEndFrame)
-    : maxHealth_(std::max(1, maxHealth))
-    , attackDamage_(std::max(1, attackDamage))
+Enemy::Enemy(sf::Vector2f feetPosition)
+    : Enemy(feetPosition, Settings{})
+{
+}
+
+Enemy::Enemy(sf::Vector2f feetPosition, Settings settings)
+    : colliderSize_(settings.colliderSize)
+    , textureScale_(settings.textureScale)
+    , patrolSpeed_(settings.patrolSpeed)
+    , chaseSpeed_(settings.chaseSpeed)
+    , patrolRange_(settings.patrolRange)
+    , detectionRange_(settings.detectionRange)
+    , attackRange_(settings.attackRange)
+    , attackHeight_(settings.attackHeight)
+    , attackInset_(settings.attackInset)
+    , preferredPlayerGap_(settings.preferredPlayerGap)
+    , attackCooldownDuration_(settings.attackCooldownDuration)
+    , maxHealth_(std::max(1, settings.maxHealth))
+    , attackDamage_(std::max(1, settings.attackDamage))
     , health_(maxHealth_)
-    , attackActiveStartFrame_(attackActiveStartFrame)
-    , attackActiveEndFrame_(std::max(attackActiveStartFrame, attackActiveEndFrame))
+    , attackActiveStartFrame_(settings.attackActiveStartFrame)
+    , attackActiveEndFrame_(std::max(settings.attackActiveStartFrame, settings.attackActiveEndFrame))
 {
     boundsSize_ = colliderSize_;
     position_ = {feetPosition.x - colliderSize_.x * 0.5f, feetPosition.y - colliderSize_.y};
@@ -43,7 +51,7 @@ Enemy::Enemy(
     debugShape_.setOutlineColor(sf::Color::White);
     debugShape_.setOutlineThickness(2.f);
 
-    loadAnimations(animationRoot);
+    loadAnimations(settings.animationRoot);
     syncDrawable();
 }
 
@@ -182,6 +190,14 @@ bool Enemy::canReceiveDamage() const
 void Enemy::loadAnimations(const std::string& animationRoot)
 {
     loadFrameSeries(AnimationState::Idle, {animationRoot + "/idle"}, 0, 7, 0.12f, true);
+    if (animationRoot == "Animations/Enemy/crystal_golem")
+    {
+        loadFrameSeries(AnimationState::Walk, {animationRoot + "/walk"}, 0, 9, 0.09f, true);
+        loadFrameSeries(AnimationState::Attack, {animationRoot + "/atack"}, 0, 9, 0.065f, false);
+        loadFrameSeries(AnimationState::Hurt, {animationRoot + "/hurt"}, 0, 4, 0.08f, false);
+        loadFrameSeries(AnimationState::Dead, {animationRoot + "/die"}, 0, 12, 0.09f, false);
+        return;
+    }
     loadFrameSeries(AnimationState::Walk, {animationRoot + "/walk", animationRoot + "/run"}, 0, 9, 0.09f, true);
     loadFrameSeries(AnimationState::Attack, {animationRoot + "/atack", animationRoot + "/attack"}, 0, 9, 0.065f, false);
     loadFrameSeries(AnimationState::Hurt, {animationRoot + "/hurt"}, 0, 4, 0.08f, false);
@@ -251,16 +267,12 @@ void Enemy::updateAi(float, Player& player)
 
     if (attackCooldown_ <= 0.f && playerWithinAttackZone)
     {
-        attacking_ = true;
-        attackHitDone_ = false;
-        attackDuration_ = animationDuration(AnimationState::Attack, 0.55f);
-        attackTimer_ = attackDuration_;
+        startAttack();
         velocity_.x = 0.f;
-        setAnimationState(AnimationState::Attack);
         return;
     }
 
-    if (std::abs(distanceX) <= detectionRange_ && clampedEdgeGap <= attackRange_ * 4.f)
+    if (std::abs(distanceX) <= detectionRange_)
     {
         facingRight_ = distanceX > 0.f;
         if (clampedEdgeGap <= preferredPlayerGap_)
@@ -350,6 +362,46 @@ void Enemy::moveVertically(float deltaTime, const std::vector<sf::FloatRect>& so
 sf::Vector2f Enemy::getCenter() const
 {
     return {position_.x + colliderSize_.x * 0.5f, position_.y + colliderSize_.y * 0.5f};
+}
+
+void Enemy::setFacingRight(bool facingRight)
+{
+    facingRight_ = facingRight;
+}
+
+bool Enemy::isAttacking() const
+{
+    return attacking_;
+}
+
+bool Enemy::isDying() const
+{
+    return dying_;
+}
+
+bool Enemy::isHurt() const
+{
+    return currentState_ == AnimationState::Hurt;
+}
+
+std::size_t Enemy::getCurrentAnimationFrame() const
+{
+    return currentFrame_;
+}
+
+void Enemy::startAttack()
+{
+    if (dying_ || attacking_)
+    {
+        return;
+    }
+
+    attacking_ = true;
+    attackHitDone_ = false;
+    attackDuration_ = animationDuration(AnimationState::Attack, 0.55f);
+    attackTimer_ = attackDuration_;
+    velocity_.x = 0.f;
+    setAnimationState(AnimationState::Attack);
 }
 
 sf::FloatRect Enemy::getAttackBounds() const
