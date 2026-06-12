@@ -243,6 +243,11 @@ bool Room::tryCastSpell(Player& player)
     return player.beginSpellCast();
 }
 
+bool Room::consumeLongBlastUnlockRequest()
+{
+    return false;
+}
+
 void Room::updateProjectileCollisions()
 {
     // Lightning strike damage is resolved on spawn; projectiles only age out here.

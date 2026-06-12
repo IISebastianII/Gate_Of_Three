@@ -34,6 +34,7 @@ public:
     void interactObjectsInBounds(const sf::FloatRect& interactionBounds);
     Projectile& spawnProjectile(sf::Vector2f startPosition, sf::Vector2f direction, float speed, int damage);
     bool tryCastSpell(Player& player);
+    virtual bool consumeLongBlastUnlockRequest();
 
 protected:
     template <typename ObjectType, typename... Args>

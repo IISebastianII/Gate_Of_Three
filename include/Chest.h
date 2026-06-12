@@ -16,6 +16,7 @@ public:
     void draw(sf::RenderTarget& target) const override;
     sf::FloatRect getBounds() const override;
     void interact() override;
+    bool isOpen() const;
 
 private:
     enum class State

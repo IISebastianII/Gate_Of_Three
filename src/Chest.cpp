@@ -78,6 +78,11 @@ sf::FloatRect Chest::getBounds() const
     return bounds_;
 }
 
+bool Chest::isOpen() const
+{
+    return state_ == State::Open;
+}
+
 void Chest::interact()
 {
     if (state_ != State::Closed)

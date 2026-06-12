@@ -32,6 +32,8 @@ public:
     sf::Vector2f getFacingDirection() const;
     sf::Vector2f getSpellSpawnPosition() const;
     const Spell& getLongBlastSpell() const;
+    bool hasLongBlastUnlocked() const;
+    void unlockLongBlastSpell();
     sf::FloatRect getBounds() const override;
     sf::FloatRect getAttackBounds() const;
     bool isAttackActive() const;
@@ -96,6 +98,7 @@ private:
     static const sf::Vector2f colliderSize_;
 
     Spell longBlastSpell_ = Spell("long_blast", 2, 860.f, 0.34f, 1);
+    bool longBlastUnlocked_ = false;
     int health_ = maxHealth_;
     int mana_ = maxMana_;
     bool facingRight_ = true;

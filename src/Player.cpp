@@ -149,6 +149,7 @@ void Player::setFeetPosition(sf::Vector2f feetPosition)
 void Player::resetForRestart(sf::Vector2f feetPosition)
 {
     setFeetPosition(feetPosition);
+    longBlastUnlocked_ = false;
     health_ = maxHealth_;
     mana_ = maxMana_;
     dead_ = false;
@@ -184,7 +185,7 @@ bool Player::trySpendSpellResources()
 
 bool Player::beginSpellCast()
 {
-    if (dead_ || attacking_ || sliding_ || spellCasting_ || !trySpendSpellResources())
+    if (dead_ || !longBlastUnlocked_ || attacking_ || sliding_ || spellCasting_ || !trySpendSpellResources())
     {
         return false;
     }
@@ -224,6 +225,16 @@ sf::Vector2f Player::getSpellSpawnPosition() const
 const Spell& Player::getLongBlastSpell() const
 {
     return longBlastSpell_;
+}
+
+bool Player::hasLongBlastUnlocked() const
+{
+    return longBlastUnlocked_;
+}
+
+void Player::unlockLongBlastSpell()
+{
+    longBlastUnlocked_ = true;
 }
 
 sf::FloatRect Player::getBounds() const

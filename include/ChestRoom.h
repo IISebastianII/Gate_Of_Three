@@ -8,13 +8,17 @@
 #include <string>
 #include <vector>
 
+class Chest;
+
 class ChestRoom : public Room
 {
 public:
     ChestRoom();
 
+    void update(float deltaTime, Player& player) override;
     void draw(sf::RenderTarget& target) const override;
     sf::Vector2f getPlayerSpawnFeet() const override;
+    bool consumeLongBlastUnlockRequest() override;
 
 private:
     void loadTextures();
@@ -30,6 +34,9 @@ private:
     std::map<std::string, sf::Texture> textures_;
     bool hasBackground_ = false;
     bool hasTiles_ = false;
+    Chest* chest_ = nullptr;
+    bool longBlastUnlockRequested_ = false;
+    bool longBlastUnlockGranted_ = false;
 
     sf::Sprite background_;
     sf::RectangleShape ground_;

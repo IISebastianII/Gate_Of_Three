@@ -30,30 +30,6 @@ sf::FloatRect expandBounds(const sf::FloatRect& bounds, float paddingX, float pa
     };
 }
 
-sf::Image createDisabledIconImage(const sf::Image& source)
-{
-    const sf::Vector2u size = source.getSize();
-    sf::Image disabled;
-    disabled.create(size.x, size.y, sf::Color::Transparent);
-
-    for (unsigned y = 0; y < size.y; ++y)
-    {
-        for (unsigned x = 0; x < size.x; ++x)
-        {
-            const sf::Color color = source.getPixel(x, y);
-            const unsigned luminance = static_cast<unsigned>(color.r * 0.299f + color.g * 0.587f + color.b * 0.114f);
-            const unsigned dimmedLuminance = static_cast<unsigned>(luminance * 0.78f);
-
-            disabled.setPixel(x, y, sf::Color(
-                static_cast<sf::Uint8>(dimmedLuminance),
-                static_cast<sf::Uint8>(dimmedLuminance),
-                static_cast<sf::Uint8>(dimmedLuminance),
-                static_cast<sf::Uint8>(std::min(255u, (static_cast<unsigned>(color.a) * 170u) / 255u))));
-        }
-    }
-
-    return disabled;
-}
 }
 
 Game::Game()
@@ -70,8 +46,7 @@ Game::Game()
     hasLongBlastIcon_ = longBlastIconImage.loadFromFile(AssetPaths::resolve("long_blast_icon.png").string());
     if (hasLongBlastIcon_)
     {
-        const sf::Image disabledIconImage = createDisabledIconImage(longBlastIconImage);
-        hasLongBlastIcon_ = longBlastIconTexture_.loadFromImage(disabledIconImage);
+        hasLongBlastIcon_ = longBlastIconTexture_.loadFromImage(longBlastIconImage);
         longBlastIconTexture_.setSmooth(false);
         longBlastIconSprite_.setTexture(longBlastIconTexture_);
     }
@@ -159,6 +134,10 @@ void Game::update(float deltaTime)
             spell.getDamage());
     }
     room.update(deltaTime, player_);
+    if (room.consumeLongBlastUnlockRequest())
+    {
+        player_.unlockLongBlastSpell();
+    }
     if (player_.isAttackActive())
     {
         room.damageObjectsInBounds(player_.getAttackBounds(), player_.getAttackDamage(), player_.getCenter());
@@ -231,7 +210,9 @@ void Game::renderHud()
             longBlastIconSprite_.setPosition(
                 healthBarPadding + healthBarWidth + iconGap,
                 healthBarPadding - 3.f);
-            longBlastIconSprite_.setColor(sf::Color(235, 235, 235, 220));
+            longBlastIconSprite_.setColor(player_.hasLongBlastUnlocked()
+                ? sf::Color(245, 245, 245, 255)
+                : sf::Color(150, 150, 150, 170));
             longBlastIconSprite_.setScale(scale, scale);
             window_.draw(longBlastIconSprite_);
         }

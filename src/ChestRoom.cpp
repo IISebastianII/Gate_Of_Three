@@ -4,6 +4,7 @@
 #include "Chest.h"
 
 #include <algorithm>
+#include <utility>
 
 ChestRoom::ChestRoom()
     : Room(RoomType::Chest)
@@ -43,6 +44,22 @@ void ChestRoom::draw(sf::RenderTarget& target) const
 sf::Vector2f ChestRoom::getPlayerSpawnFeet() const
 {
     return {160.f, groundTop_};
+}
+
+void ChestRoom::update(float deltaTime, Player& player)
+{
+    Room::update(deltaTime, player);
+
+    if (chest_ != nullptr && chest_->isOpen() && !longBlastUnlockGranted_)
+    {
+        longBlastUnlockGranted_ = true;
+        longBlastUnlockRequested_ = true;
+    }
+}
+
+bool ChestRoom::consumeLongBlastUnlockRequest()
+{
+    return std::exchange(longBlastUnlockRequested_, false);
 }
 
 void ChestRoom::loadTextures()
@@ -88,7 +105,9 @@ void ChestRoom::buildGeometry()
         }
     }
 
-    addObject<Chest>(sf::Vector2f{roomSize_.x * 0.5f, groundTop_});
+    chest_ = &addObject<Chest>(sf::Vector2f{roomSize_.x * 0.5f, groundTop_});
+    longBlastUnlockRequested_ = false;
+    longBlastUnlockGranted_ = false;
 }
 
 void ChestRoom::loadTexture(const std::string& id, const std::string& relativePath)
