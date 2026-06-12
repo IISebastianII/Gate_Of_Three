@@ -1,5 +1,6 @@
 #include "BossRoom.h"
 
+#include "AdditionalRoomMapData.h"
 #include "AssetPaths.h"
 #include "Boss.h"
 
@@ -42,6 +43,9 @@ sf::Vector2f BossRoom::getPlayerSpawnFeet() const
 
 void BossRoom::loadTextures()
 {
+    hasMapAtlas_ = mapAtlasTexture_.loadFromFile(AssetPaths::resolve("Maps/battle_room_1_spritesheet.png").string());
+    mapAtlasTexture_.setSmooth(false);
+
     loadTexture("rockDirt", "Tiles/rocks/dirt_inside_filling.png");
     loadTexture("wall1", "Tiles/rocks/rocks_wall_1.png");
     loadTexture("wall2", "Tiles/rocks/rocks_wall_2.png");
@@ -56,46 +60,49 @@ void BossRoom::loadTextures()
 
 void BossRoom::buildGeometry()
 {
+    constexpr float mapTop = groundTop_ - 13.f * tileSize_;
     solidColliders_.clear();
     tiles_.clear();
     solidColliders_.push_back({0.f, groundTop_, roomSize_.x, roomSize_.y - groundTop_});
+    solidColliders_.push_back({roomSize_.x - tileSize_, 0.f, tileSize_, groundTop_});
 
     fallbackGround_.setSize({roomSize_.x, roomSize_.y - groundTop_});
     fallbackGround_.setPosition(0.f, groundTop_);
     fallbackGround_.setFillColor(sf::Color(48, 52, 62));
 
-    constexpr int columns = 20;
-    if (hasFloorTiles_)
+    if (hasMapAtlas_)
     {
-        for (int column = 0; column < columns; ++column)
+        for (const auto& tile : bossRoomTiles)
         {
-            const float x = static_cast<float>(column) * tileSize_;
-            addTile("rockDirt", {x, groundTop_});
-            addTile("rockDirt", {x, groundTop_ + tileSize_});
-            addTile("ceiling", {x, 0.f});
-        }
+            if (tile.id < 72)
+            {
+                addAtlasTile(tile.id, tile.x, tile.y, mapTop);
+                continue;
+            }
 
-        for (float y = tileSize_; y < groundTop_; y += tileSize_)
-        {
-            addTile("wall1", {0.f, y});
-            addTile("wall2", {roomSize_.x - tileSize_, y});
+            const char* textureId = "rockDirt";
+            if (tile.id == 74 || tile.id == 76)
+            {
+                textureId = "wall1";
+            }
+            else if (tile.id == 75)
+            {
+                textureId = "leftCorner";
+            }
+            else if (tile.id == 77)
+            {
+                textureId = "rightCorner";
+            }
+            addTile(textureId, {
+                static_cast<float>(tile.x) * tileSize_,
+                mapTop + static_cast<float>(tile.y) * tileSize_});
         }
-
-        addTile("leftCorner", {0.f, 0.f});
-        addTile("rightCorner", {roomSize_.x - tileSize_, 0.f});
-        addTile("ceilingSpikes", {tileSize_ * 5.f, tileSize_});
-        addTile("ceilingSpikes", {tileSize_ * 14.f, tileSize_});
     }
 
-    RoomExit& healExit = addExit(
+    addExit(
         RoomType::Heal,
-        {1120.f, groundTop_},
+        {1120.f, 452.f},
         {0.f, groundTop_ - tileSize_, tileSize_ * 3.f, tileSize_ * 2.f});
-    const auto signTexture = textures_.find("sign");
-    if (signTexture != textures_.end())
-    {
-        healExit.setTexture(signTexture->second, {tileSize_ * 1.5f, groundTop_}, tileScale_);
-    }
 
     addObject<Boss>(sf::Vector2f{roomSize_.x * 0.68f, groundTop_});
 }
@@ -123,5 +130,20 @@ void BossRoom::addTile(const std::string& textureId, sf::Vector2f position)
     sf::Sprite tile(found->second);
     tile.setScale(tileScale_, tileScale_);
     tile.setPosition(position);
+    tiles_.push_back(tile);
+}
+
+void BossRoom::addAtlasTile(int id, int column, int row, float mapTop)
+{
+    constexpr int atlasColumns = 8;
+    constexpr int sourceTileSize = 32;
+    sf::Sprite tile(mapAtlasTexture_);
+    tile.setTextureRect({
+        (id % atlasColumns) * sourceTileSize,
+        (id / atlasColumns) * sourceTileSize,
+        sourceTileSize,
+        sourceTileSize});
+    tile.setScale(tileScale_, tileScale_);
+    tile.setPosition(static_cast<float>(column) * tileSize_, mapTop + static_cast<float>(row) * tileSize_);
     tiles_.push_back(tile);
 }

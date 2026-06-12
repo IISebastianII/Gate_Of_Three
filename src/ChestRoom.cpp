@@ -1,10 +1,26 @@
 #include "ChestRoom.h"
 
+#include "AdditionalRoomMapData.h"
 #include "AssetPaths.h"
 #include "Chest.h"
+#include "TerrainCollision.h"
 
 #include <algorithm>
+#include <array>
+#include <cmath>
+#include <limits>
 #include <utility>
+
+namespace
+{
+bool isChestTerrainTile(int id)
+{
+    constexpr std::array<int, 21> terrainIds = {
+        0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 27,
+        28, 29, 33, 34, 35, 36, 37, 42, 43, 55};
+    return std::find(terrainIds.begin(), terrainIds.end(), id) != terrainIds.end();
+}
+}
 
 ChestRoom::ChestRoom()
     : Room(RoomType::Chest)
@@ -35,7 +51,15 @@ void ChestRoom::draw(sf::RenderTarget& target) const
     }
     else
     {
-        target.draw(ground_);
+        for (const auto& platform : fallbackPlatforms_)
+        {
+            target.draw(platform);
+        }
+    }
+
+    for (const auto& decor : decors_)
+    {
+        target.draw(decor);
     }
 
     Room::draw(target);
@@ -43,7 +67,7 @@ void ChestRoom::draw(sf::RenderTarget& target) const
 
 sf::Vector2f ChestRoom::getPlayerSpawnFeet() const
 {
-    return {160.f, groundTop_};
+    return {32.f, groundTop_};
 }
 
 void ChestRoom::update(float deltaTime, Player& player)
@@ -66,19 +90,65 @@ void ChestRoom::loadTextures()
 {
     hasBackground_ = backgroundTexture_.loadFromFile(AssetPaths::resolve("backgrounds/forest_background.png").string());
     backgroundTexture_.setSmooth(false);
+    hasMapAtlas_ = mapAtlasTexture_.loadFromFile(AssetPaths::resolve("Maps/battle_room_1_spritesheet.png").string());
+    mapAtlasTexture_.setSmooth(false);
 
     loadTexture("grass", "Tiles/grass/grass.png");
     loadTexture("dirt", "Tiles/grass/dirt_inside_filling.png");
+    loadTexture("slopeLeft", "Tiles/grass/rocks_slope_left.png");
+    loadTexture("slopeRight", "Tiles/grass/rocks_slope_right.png");
+    loadTexture("bush", "decors/bush.png");
+    loadTexture("apples", "decors/apples.png");
     loadTexture("sign", "decors/sign.png");
 
-    hasTiles_ = textures_.count("grass") > 0 && textures_.count("dirt") > 0;
+    hasTiles_ = hasMapAtlas_ || (textures_.count("grass") > 0 && textures_.count("dirt") > 0);
 }
 
 void ChestRoom::buildGeometry()
 {
+    constexpr int columns = 20;
+    constexpr int bottomRow = 4;
+    constexpr float mapTop = groundTop_ - static_cast<float>(bottomRow) * tileSize_;
+    std::array<int, columns> surfaceRows;
+    surfaceRows.fill(std::numeric_limits<int>::max());
+
     solidColliders_.clear();
     tiles_.clear();
-    solidColliders_.push_back({0.f, groundTop_, roomSize_.x, roomSize_.y - groundTop_});
+    decors_.clear();
+    fallbackPlatforms_.clear();
+
+    for (const auto& tile : chestRoomTiles)
+    {
+        if (hasMapAtlas_ && tile.id != 40 && tile.id != 41)
+        {
+            addAtlasTile(tile.id, tile.x, tile.y, mapTop);
+        }
+
+        if (tile.x >= 0 && tile.x < columns && isChestTerrainTile(tile.id))
+        {
+            surfaceRows[static_cast<std::size_t>(tile.x)] =
+                std::min(surfaceRows[static_cast<std::size_t>(tile.x)], tile.y);
+        }
+    }
+
+    if (hasMapAtlas_)
+    {
+        TerrainCollision::addAtlasSurfaceColliders(
+            solidColliders_,
+            chestRoomTiles,
+            mapAtlasTexture_.copyToImage(),
+            8,
+            32,
+            tileScale_,
+            mapTop,
+            columns,
+            roomSize_.y,
+            [](const auto& tile) { return isChestTerrainTile(tile.id); });
+    }
+    else
+    {
+        TerrainCollision::addSurfaceColliders(solidColliders_, surfaceRows, mapTop, tileSize_, roomSize_.y);
+    }
 
     if (hasBackground_)
     {
@@ -96,27 +166,23 @@ void ChestRoom::buildGeometry()
     ground_.setPosition(0.f, groundTop_);
     ground_.setFillColor(sf::Color(42, 45, 52));
 
-    if (hasTiles_)
+    if (!hasMapAtlas_)
     {
-        const int columns = static_cast<int>(roomSize_.x / tileSize_);
-        for (int column = 1; column <= columns; ++column)
+        for (const auto& collider : solidColliders_)
         {
-            addTile("grass", column, 1);
-            addTile("dirt", column, 0);
+            sf::RectangleShape platform({collider.width, collider.height});
+            platform.setPosition(collider.left, collider.top);
+            platform.setFillColor(sf::Color(74, 124, 70));
+            fallbackPlatforms_.push_back(platform);
         }
     }
 
-    chest_ = &addObject<Chest>(sf::Vector2f{roomSize_.x * 0.5f, groundTop_});
+    chest_ = &addObject<Chest>(sf::Vector2f{16.f * tileSize_, mapTop + 2.f * tileSize_});
 
-    RoomExit& battleExit = addExit(
+    addExit(
         RoomType::BattleTwo,
-        {160.f, groundTop_},
+        {32.f, groundTop_},
         {roomSize_.x - tileSize_ * 3.f, groundTop_ - tileSize_, tileSize_ * 3.f, tileSize_ * 2.f});
-    const auto signTexture = textures_.find("sign");
-    if (signTexture != textures_.end())
-    {
-        battleExit.setTexture(signTexture->second, {roomSize_.x - tileSize_ * 1.5f, groundTop_}, tileScale_);
-    }
 
     longBlastUnlockRequested_ = false;
     longBlastUnlockGranted_ = false;
@@ -146,4 +212,35 @@ void ChestRoom::addTile(const std::string& textureId, int column, int row)
     tile.setScale(tileScale_, tileScale_);
     tile.setPosition(static_cast<float>(column - 1) * tileSize_, groundTop_ - static_cast<float>(row - 1) * tileSize_);
     tiles_.push_back(tile);
+}
+
+void ChestRoom::addAtlasTile(int id, int column, int row, float mapTop)
+{
+    constexpr int atlasColumns = 8;
+    constexpr int sourceTileSize = 32;
+    sf::Sprite tile(mapAtlasTexture_);
+    tile.setTextureRect({
+        (id % atlasColumns) * sourceTileSize,
+        (id / atlasColumns) * sourceTileSize,
+        sourceTileSize,
+        sourceTileSize});
+    tile.setScale(tileScale_, tileScale_);
+    tile.setPosition(static_cast<float>(column) * tileSize_, mapTop + static_cast<float>(row) * tileSize_);
+    tiles_.push_back(tile);
+}
+
+void ChestRoom::addSprite(const std::string& textureId, sf::Vector2f bottomCenter, float scale)
+{
+    const auto found = textures_.find(textureId);
+    if (found == textures_.end())
+    {
+        return;
+    }
+
+    sf::Sprite sprite(found->second);
+    const sf::Vector2u size = found->second.getSize();
+    sprite.setOrigin(static_cast<float>(size.x) * 0.5f, static_cast<float>(size.y));
+    sprite.setScale(scale, scale);
+    sprite.setPosition(bottomCenter);
+    decors_.push_back(sprite);
 }

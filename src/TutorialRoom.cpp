@@ -2,6 +2,7 @@
 
 #include "AssetPaths.h"
 #include "Npc.h"
+#include "TerrainCollision.h"
 
 #include <cmath>
 #include <initializer_list>
@@ -115,12 +116,28 @@ void TutorialRoom::buildGeometry()
     const float slopeLeft = tileLeft(10);
     const float slopeWidth = tileSize_ * 3.f;
     const float slopeHeight = baseGroundTop_ - plateauTop_;
-    const float halfTile = tileSize_ * 0.5f;
-    for (int step = 0; step < 6; ++step)
+    const auto slopeTexture = textures_.find("slopeLeft");
+    if (slopeTexture != textures_.end())
     {
-        const float progress = static_cast<float>(step) / 5.f;
-        const float top = baseGroundTop_ - slopeHeight * progress;
-        solidColliders_.push_back({slopeLeft + halfTile * static_cast<float>(step), top, halfTile, roomSize_.y - top});
+        const sf::Vector2u slopeTextureSize = slopeTexture->second.getSize();
+        TerrainCollision::addTextureSurfaceColliders(
+            solidColliders_,
+            slopeTexture->second.copyToImage(),
+            {
+                slopeLeft,
+                tileBottom(1) - static_cast<float>(slopeTextureSize.y) * tileScale_},
+            tileScale_,
+            roomSize_.y);
+    }
+    else
+    {
+        TerrainCollision::addLinearSlope(
+            solidColliders_,
+            slopeLeft,
+            slopeWidth,
+            baseGroundTop_,
+            baseGroundTop_ - slopeHeight,
+            roomSize_.y);
     }
 
     for (int x = 13; x <= 16; ++x)
@@ -201,7 +218,7 @@ void TutorialRoom::buildGeometry()
 
         RoomExit& battleExit = addExit(
             RoomType::Battle,
-            {160.f, 772.f},
+            {96.f, 772.f},
             {tileLeft(30), tileTop(1) - tileSize_, tileSize_ * 3.f, tileSize_ * 2.f});
         const auto signTexture = textures_.find("sign");
         if (signTexture != textures_.end())

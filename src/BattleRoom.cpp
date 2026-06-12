@@ -1,13 +1,37 @@
 #include "BattleRoom.h"
 
+#include "AdditionalRoomMapData.h"
 #include "AssetPaths.h"
+#include "BattleRoomOneMapData.h"
 #include "Enemy.h"
 #include "Mushroom.h"
+#include "TerrainCollision.h"
+
+#include <algorithm>
+#include <array>
+#include <cmath>
+#include <limits>
+
+namespace
+{
+constexpr int battleOneColumns = 32;
+constexpr int battleOneBottomRow = 6;
+
+bool isTerrainTile(int id)
+{
+    constexpr std::array<int, 21> terrainIds = {
+        0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 27,
+        28, 29, 33, 34, 35, 36, 37, 42, 43, 55};
+    return std::find(terrainIds.begin(), terrainIds.end(), id) != terrainIds.end();
+}
+}
 
 BattleRoom::BattleRoom(RoomType type)
     : Room(type)
 {
-    roomSize_ = {2304.f, 900.f};
+    roomSize_ = type == RoomType::Battle
+        ? sf::Vector2f{2048.f, 900.f}
+        : sf::Vector2f{2048.f, 900.f};
     clearColor_ = sf::Color(222, 236, 239);
     loadTextures();
     buildGeometry();
@@ -49,13 +73,19 @@ void BattleRoom::draw(sf::RenderTarget& target) const
 
 sf::Vector2f BattleRoom::getPlayerSpawnFeet() const
 {
-    return {160.f, groundTop_};
+    return type_ == RoomType::Battle
+        ? sf::Vector2f{96.f, groundTop_}
+        : sf::Vector2f{96.f, groundTop_};
 }
 
 void BattleRoom::loadTextures()
 {
     hasBackground_ = backgroundTexture_.loadFromFile(AssetPaths::resolve("backgrounds/forest_background.png").string());
     backgroundTexture_.setSmooth(false);
+
+    hasBattleOneAtlas_ = battleOneAtlasTexture_.loadFromFile(
+        AssetPaths::resolve("Maps/battle_room_1_spritesheet.png").string());
+    battleOneAtlasTexture_.setSmooth(false);
 
     loadTexture("grass", "Tiles/grass/grass.png");
     loadTexture("dirt", "Tiles/grass/dirt_inside_filling.png");
@@ -77,11 +107,183 @@ void BattleRoom::loadTextures()
     loadTexture("cookingPot", "decors/cooking_pot.png");
     loadTexture("sign", "decors/sign.png");
 
-    hasTiles_ = textures_.count("grass") > 0 && textures_.count("dirt") > 0;
+    hasTiles_ = hasBattleOneAtlas_ || (textures_.count("grass") > 0 && textures_.count("dirt") > 0);
 }
 
 void BattleRoom::buildGeometry()
 {
+    if (type_ == RoomType::Battle)
+    {
+        buildBattleOneGeometry();
+        return;
+    }
+
+    buildBattleTwoGeometry();
+}
+
+void BattleRoom::buildBattleOneGeometry()
+{
+    constexpr float mapTop = groundTop_ - static_cast<float>(battleOneBottomRow) * tileSize_;
+    std::array<int, battleOneColumns> surfaceRows;
+    surfaceRows.fill(std::numeric_limits<int>::max());
+
+    solidColliders_.clear();
+    tiles_.clear();
+    decors_.clear();
+    fallbackPlatforms_.clear();
+
+    for (const auto& tile : battleRoomOneTiles)
+    {
+        if (hasBattleOneAtlas_)
+        {
+            addAtlasTile(tile.id, tile.x, tile.y, mapTop);
+        }
+
+        if (tile.x >= 0 && tile.x < battleOneColumns && isTerrainTile(tile.id))
+        {
+            surfaceRows[static_cast<std::size_t>(tile.x)] =
+                std::min(surfaceRows[static_cast<std::size_t>(tile.x)], tile.y);
+        }
+    }
+
+    if (hasBattleOneAtlas_)
+    {
+        TerrainCollision::addAtlasSurfaceColliders(
+            solidColliders_,
+            battleRoomOneTiles,
+            battleOneAtlasTexture_.copyToImage(),
+            8,
+            32,
+            tileScale_,
+            mapTop,
+            battleOneColumns,
+            roomSize_.y,
+            [](const auto& tile) { return isTerrainTile(tile.id); });
+    }
+    else
+    {
+        TerrainCollision::addSurfaceColliders(solidColliders_, surfaceRows, mapTop, tileSize_, roomSize_.y);
+    }
+
+    if (hasBackground_)
+    {
+        const auto textureSize = backgroundTexture_.getSize();
+        const float scaleX = roomSize_.x / static_cast<float>(textureSize.x);
+        const float scaleY = roomSize_.y / static_cast<float>(textureSize.y);
+        const float scale = std::max(scaleX, scaleY);
+        background_.setTexture(backgroundTexture_);
+        background_.setScale(scale, scale);
+        background_.setColor(sf::Color::White);
+        background_.setPosition((roomSize_.x - static_cast<float>(textureSize.x) * scale) * 0.5f, 0.f);
+    }
+
+    if (!hasBattleOneAtlas_)
+    {
+        for (const auto& collider : solidColliders_)
+        {
+            sf::RectangleShape platform({collider.width, collider.height});
+            platform.setPosition(collider.left, collider.top);
+            platform.setFillColor(sf::Color(74, 124, 70));
+            fallbackPlatforms_.push_back(platform);
+        }
+    }
+
+    addExit(
+        RoomType::Tutorial,
+        {1880.f, groundTop_},
+        {0.f, groundTop_ - tileSize_, tileSize_ * 3.f, tileSize_ * 2.f});
+    addExit(
+        RoomType::Chest,
+        {32.f, groundTop_},
+        {roomSize_.x - tileSize_ * 3.f, groundTop_ - tileSize_, tileSize_ * 3.f, tileSize_ * 2.f});
+
+    const auto surfaceFeet = [&](int column) {
+        return mapTop + static_cast<float>(surfaceRows[static_cast<std::size_t>(column)]) * tileSize_;
+    };
+
+    addObject<Enemy>(sf::Vector2f{9.5f * tileSize_, surfaceFeet(9)});
+    addObject<Mushroom>(sf::Vector2f{15.5f * tileSize_, surfaceFeet(15)});
+    addObject<Enemy>(sf::Vector2f{22.5f * tileSize_, surfaceFeet(22)});
+    addObject<Enemy>(sf::Vector2f{27.5f * tileSize_, surfaceFeet(27)});
+}
+
+void BattleRoom::buildBattleTwoGeometry()
+{
+    constexpr int columns = 32;
+    constexpr int bottomRow = 5;
+    constexpr float mapTop = groundTop_ - static_cast<float>(bottomRow) * tileSize_;
+    std::array<int, columns> surfaceRows;
+    surfaceRows.fill(std::numeric_limits<int>::max());
+
+    solidColliders_.clear();
+    tiles_.clear();
+    decors_.clear();
+    fallbackPlatforms_.clear();
+
+    for (const auto& tile : battleRoomTwoTiles)
+    {
+        if (hasBattleOneAtlas_ && tile.id < 72)
+        {
+            addAtlasTile(tile.id, tile.x, tile.y, mapTop);
+        }
+
+        if (tile.x >= 0 && tile.x < columns && isTerrainTile(tile.id))
+        {
+            surfaceRows[static_cast<std::size_t>(tile.x)] =
+                std::min(surfaceRows[static_cast<std::size_t>(tile.x)], tile.y);
+        }
+    }
+
+    if (hasBattleOneAtlas_)
+    {
+        TerrainCollision::addAtlasSurfaceColliders(
+            solidColliders_,
+            battleRoomTwoTiles,
+            battleOneAtlasTexture_.copyToImage(),
+            8,
+            32,
+            tileScale_,
+            mapTop,
+            columns,
+            roomSize_.y,
+            [](const auto& tile) { return isTerrainTile(tile.id); });
+    }
+    else
+    {
+        TerrainCollision::addSurfaceColliders(solidColliders_, surfaceRows, mapTop, tileSize_, roomSize_.y);
+    }
+
+    if (hasBackground_)
+    {
+        const auto textureSize = backgroundTexture_.getSize();
+        const float scaleX = roomSize_.x / static_cast<float>(textureSize.x);
+        const float scaleY = roomSize_.y / static_cast<float>(textureSize.y);
+        const float scale = std::max(scaleX, scaleY);
+        background_.setTexture(backgroundTexture_);
+        background_.setScale(scale, scale);
+        background_.setColor(sf::Color::White);
+        background_.setPosition((roomSize_.x - static_cast<float>(textureSize.x) * scale) * 0.5f, 0.f);
+    }
+
+    addExit(
+        RoomType::Chest,
+        {1216.f, groundTop_},
+        {0.f, groundTop_ - tileSize_, tileSize_ * 3.f, tileSize_ * 2.f});
+    addExit(
+        RoomType::Heal,
+        {32.f, groundTop_},
+        {roomSize_.x - tileSize_ * 3.f, groundTop_ - tileSize_, tileSize_ * 3.f, tileSize_ * 2.f});
+
+    const auto surfaceFeet = [&](int column) {
+        return mapTop + static_cast<float>(surfaceRows[static_cast<std::size_t>(column)]) * tileSize_;
+    };
+
+    addObject<Enemy>(sf::Vector2f{8.5f * tileSize_, surfaceFeet(8)});
+    addObject<Mushroom>(sf::Vector2f{15.5f * tileSize_, surfaceFeet(15)});
+    addObject<Enemy>(sf::Vector2f{22.5f * tileSize_, surfaceFeet(22)});
+    addObject<Enemy>(sf::Vector2f{28.5f * tileSize_, surfaceFeet(28)});
+    return;
+
     const auto tileLeft = [](int x) {
         return static_cast<float>(x - 1) * tileSize_;
     };
@@ -94,7 +296,7 @@ void BattleRoom::buildGeometry()
         return tileLeft(x) + tileSize_ * 0.5f;
     };
 
-    constexpr int columns = 36;
+    constexpr int oldColumns = 36;
     const std::vector<int> terrainHeight = {
         1, 1, 1, 1, 1,
         2, 2,
@@ -112,7 +314,7 @@ void BattleRoom::buildGeometry()
     decors_.clear();
     fallbackPlatforms_.clear();
 
-    for (int column = 1; column <= columns; ++column)
+    for (int column = 1; column <= oldColumns; ++column)
     {
         const int height = terrainHeight[static_cast<std::size_t>(column - 1)];
         const float top = tileTop(height);
@@ -133,7 +335,7 @@ void BattleRoom::buildGeometry()
 
     if (hasTiles_)
     {
-        for (int column = 1; column <= columns; ++column)
+        for (int column = 1; column <= oldColumns; ++column)
         {
             const int height = terrainHeight[static_cast<std::size_t>(column - 1)];
 
@@ -248,6 +450,22 @@ void BattleRoom::addTile(const std::string& textureId, int column, int row)
     sf::Sprite tile(found->second);
     tile.setScale(tileScale_, tileScale_);
     tile.setPosition(static_cast<float>(column - 1) * tileSize_, groundTop_ - static_cast<float>(row - 1) * tileSize_);
+    tiles_.push_back(tile);
+}
+
+void BattleRoom::addAtlasTile(int id, int column, int row, float mapTop)
+{
+    constexpr int atlasColumns = 8;
+    constexpr int sourceTileSize = 32;
+
+    sf::Sprite tile(battleOneAtlasTexture_);
+    tile.setTextureRect({
+        (id % atlasColumns) * sourceTileSize,
+        (id / atlasColumns) * sourceTileSize,
+        sourceTileSize,
+        sourceTileSize});
+    tile.setScale(tileScale_, tileScale_);
+    tile.setPosition(static_cast<float>(column) * tileSize_, mapTop + static_cast<float>(row) * tileSize_);
     tiles_.push_back(tile);
 }
 

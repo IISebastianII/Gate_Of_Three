@@ -37,8 +37,10 @@ SOURCES += \
     src/main.cpp
 
 HEADERS += \
+    include/AdditionalRoomMapData.h \
     include/AssetPaths.h \
     include/BattleRoom.h \
+    include/BattleRoomOneMapData.h \
     include/Boss.h \
     include/BossRoom.h \
     include/Chest.h \
@@ -59,6 +61,7 @@ HEADERS += \
     include/RoomManager.h \
     include/RoomType.h \
     include/Spell.h \
+    include/TerrainCollision.h \
     include/TutorialRoom.h
 
 OTHER_FILES += \

@@ -21,12 +21,15 @@ private:
     void buildGeometry();
     void loadTexture(const std::string& id, const std::string& relativePath);
     void addTile(const std::string& textureId, sf::Vector2f position);
+    void addAtlasTile(int id, int column, int row, float mapTop);
 
     static constexpr float tileScale_ = 2.f;
     static constexpr float tileSize_ = 64.f;
-    static constexpr float groundTop_ = 772.f;
+    static constexpr float groundTop_ = 836.f;
 
+    sf::Texture mapAtlasTexture_;
     std::map<std::string, sf::Texture> textures_;
+    bool hasMapAtlas_ = false;
     bool hasFloorTiles_ = false;
 
     sf::RectangleShape fallbackGround_;

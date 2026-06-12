@@ -25,14 +25,18 @@ private:
     void buildGeometry();
     void loadTexture(const std::string& id, const std::string& relativePath);
     void addTile(const std::string& textureId, int column, int row);
+    void addAtlasTile(int id, int column, int row, float mapTop);
+    void addSprite(const std::string& textureId, sf::Vector2f bottomCenter, float scale);
 
     static constexpr float tileScale_ = 2.f;
     static constexpr float tileSize_ = 64.f;
     static constexpr float groundTop_ = 772.f;
 
     sf::Texture backgroundTexture_;
+    sf::Texture mapAtlasTexture_;
     std::map<std::string, sf::Texture> textures_;
     bool hasBackground_ = false;
+    bool hasMapAtlas_ = false;
     bool hasTiles_ = false;
     Chest* chest_ = nullptr;
     bool longBlastUnlockRequested_ = false;
@@ -41,4 +45,6 @@ private:
     sf::Sprite background_;
     sf::RectangleShape ground_;
     std::vector<sf::Sprite> tiles_;
+    std::vector<sf::Sprite> decors_;
+    std::vector<sf::RectangleShape> fallbackPlatforms_;
 };

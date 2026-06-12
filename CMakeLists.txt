@@ -36,8 +36,10 @@ add_executable(GateOfThree
     src/RoomManager.cpp
     src/Spell.cpp
     src/TutorialRoom.cpp
+    include/AdditionalRoomMapData.h
     include/AssetPaths.h
     include/BattleRoom.h
+    include/BattleRoomOneMapData.h
     include/Boss.h
     include/BossRoom.h
     include/Chest.h
@@ -58,6 +60,7 @@ add_executable(GateOfThree
     include/RoomManager.h
     include/RoomType.h
     include/Spell.h
+    include/TerrainCollision.h
     include/TutorialRoom.h
 )
 

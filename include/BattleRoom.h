@@ -19,8 +19,11 @@ public:
 private:
     void loadTextures();
     void buildGeometry();
+    void buildBattleOneGeometry();
+    void buildBattleTwoGeometry();
     void loadTexture(const std::string& id, const std::string& relativePath);
     void addTile(const std::string& textureId, int column, int row);
+    void addAtlasTile(int id, int column, int row, float mapTop);
     void addSprite(const std::string& textureId, sf::Vector2f bottomCenter, float scale);
 
     static constexpr float tileScale_ = 2.f;
@@ -28,8 +31,10 @@ private:
     static constexpr float groundTop_ = 772.f;
 
     sf::Texture backgroundTexture_;
+    sf::Texture battleOneAtlasTexture_;
     std::map<std::string, sf::Texture> textures_;
     bool hasBackground_ = false;
+    bool hasBattleOneAtlas_ = false;
     bool hasTiles_ = false;
 
     sf::Sprite background_;

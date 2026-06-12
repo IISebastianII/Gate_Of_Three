@@ -422,6 +422,13 @@ void Player::moveHorizontally(float deltaTime, const std::vector<sf::FloatRect>&
             continue;
         }
 
+        const bool slopeStrip = solid.width <= 4.1f;
+        const float feetCenterX = bounds.left + bounds.width * 0.5f;
+        if (slopeStrip && (feetCenterX < solid.left || feetCenterX >= solid.left + solid.width))
+        {
+            continue;
+        }
+
         const float verticalOverlapFromFeet = bounds.top + bounds.height - solid.top;
         if (onGround_ && verticalOverlapFromFeet > 0.f && verticalOverlapFromFeet <= maxStepHeight_)
         {
@@ -454,6 +461,13 @@ void Player::moveVertically(float deltaTime, const std::vector<sf::FloatRect>& s
     for (const auto& solid : solidColliders)
     {
         if (!bounds.intersects(solid))
+        {
+            continue;
+        }
+
+        const bool slopeStrip = solid.width <= 4.1f;
+        const float feetCenterX = bounds.left + bounds.width * 0.5f;
+        if (slopeStrip && (feetCenterX < solid.left || feetCenterX >= solid.left + solid.width))
         {
             continue;
         }
