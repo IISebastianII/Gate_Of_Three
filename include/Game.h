@@ -17,13 +17,23 @@ public:
     void run();
 
 private:
+    enum class ScreenState
+    {
+        Menu,
+        Playing
+    };
+
     void processEvents();
     void update(float deltaTime);
     void render();
+    void renderMenu();
     void renderHud();
     void updateCamera();
     void restartGame();
     sf::FloatRect getRetryButtonBounds() const;
+    sf::FloatRect getPlayButtonBounds() const;
+    sf::FloatRect getExitButtonBounds() const;
+    void startGame();
 
     sf::RenderWindow window_;
     sf::View gameView_;
@@ -32,6 +42,7 @@ private:
     sf::Font gameOverFont_;
     sf::Texture longBlastIconTexture_;
     sf::Sprite longBlastIconSprite_;
+    ScreenState screenState_ = ScreenState::Menu;
     bool hasGameOverFont_ = false;
     bool hasLongBlastIcon_ = false;
 };

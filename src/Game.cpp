@@ -9,6 +9,13 @@ namespace
 constexpr unsigned windowWidth = 1280;
 constexpr unsigned windowHeight = 720;
 constexpr float maxDeltaTime = 1.f / 30.f;
+constexpr float menuPanelWidth = 560.f;
+constexpr float menuPanelHeight = 360.f;
+constexpr float menuButtonWidth = 260.f;
+constexpr float menuButtonHeight = 64.f;
+constexpr float menuButtonGap = 18.f;
+constexpr float menuButtonTop = 330.f;
+constexpr float menuTitleTop = 145.f;
 constexpr float healthBarWidth = 220.f;
 constexpr float healthBarHeight = 12.f;
 constexpr float healthBarPadding = 24.f;
@@ -81,6 +88,27 @@ void Game::processEvents()
             window_.close();
         }
 
+        if (screenState_ == ScreenState::Menu)
+        {
+            if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left)
+            {
+                const sf::Vector2f mousePosition = window_.mapPixelToCoords(
+                    {event.mouseButton.x, event.mouseButton.y},
+                    window_.getDefaultView());
+
+                if (getPlayButtonBounds().contains(mousePosition))
+                {
+                    startGame();
+                }
+                else if (getExitButtonBounds().contains(mousePosition))
+                {
+                    window_.close();
+                }
+            }
+
+            continue;
+        }
+
         if (event.type == sf::Event::MouseButtonPressed
             && event.mouseButton.button == sf::Mouse::Left
             && player_.isDead())
@@ -118,6 +146,11 @@ void Game::processEvents()
 
 void Game::update(float deltaTime)
 {
+    if (screenState_ == ScreenState::Menu)
+    {
+        return;
+    }
+
     Room& room = roomManager_.getCurrentRoom();
     player_.update(deltaTime, room.getSolidColliders(), room.getBounds());
     if (player_.consumeSpellCastRequest())
@@ -148,14 +181,92 @@ void Game::update(float deltaTime)
 void Game::render()
 {
     window_.clear(sf::Color(126, 184, 208));
-    window_.setView(gameView_);
+    if (screenState_ == ScreenState::Menu)
+    {
+        renderMenu();
+    }
+    else
+    {
+        window_.setView(gameView_);
 
-    roomManager_.getCurrentRoom().draw(window_);
-    player_.draw(window_);
+        roomManager_.getCurrentRoom().draw(window_);
+        player_.draw(window_);
 
-    renderHud();
+        renderHud();
+    }
 
     window_.display();
+}
+
+void Game::renderMenu()
+{
+    window_.setView(window_.getDefaultView());
+
+    sf::RectangleShape backdrop({static_cast<float>(windowWidth), static_cast<float>(windowHeight)});
+    backdrop.setFillColor(sf::Color(22, 28, 40));
+    window_.draw(backdrop);
+
+    sf::RectangleShape glow({static_cast<float>(windowWidth), static_cast<float>(windowHeight)});
+    glow.setFillColor(sf::Color(92, 122, 180, 35));
+    window_.draw(glow);
+
+    sf::RectangleShape panel({menuPanelWidth, menuPanelHeight});
+    panel.setPosition(
+        (static_cast<float>(windowWidth) - menuPanelWidth) * 0.5f,
+        250.f);
+    panel.setFillColor(sf::Color(10, 14, 22, 170));
+    panel.setOutlineColor(sf::Color(255, 255, 255, 50));
+    panel.setOutlineThickness(2.f);
+    window_.draw(panel);
+
+    if (hasGameOverFont_)
+    {
+        sf::Text title;
+        title.setFont(gameOverFont_);
+        title.setString("Gate of Three");
+        title.setCharacterSize(88);
+        title.setFillColor(sf::Color(245, 245, 245));
+        title.setOutlineColor(sf::Color(12, 15, 22));
+        title.setOutlineThickness(4.f);
+
+        const sf::FloatRect titleBounds = title.getLocalBounds();
+        title.setOrigin(
+            titleBounds.left + titleBounds.width * 0.5f,
+            titleBounds.top + titleBounds.height * 0.5f);
+        title.setPosition(static_cast<float>(windowWidth) * 0.5f, menuTitleTop);
+        window_.draw(title);
+
+        const auto drawMenuButton = [&](const sf::FloatRect& bounds, const sf::String& label, bool highlighted)
+        {
+            sf::RectangleShape button({bounds.width, bounds.height});
+            button.setPosition(bounds.left, bounds.top);
+            button.setFillColor(highlighted ? sf::Color(60, 74, 96) : sf::Color(35, 43, 56));
+            button.setOutlineColor(sf::Color(255, 255, 255, highlighted ? 130 : 80));
+            button.setOutlineThickness(2.f);
+            window_.draw(button);
+
+            sf::Text text;
+            text.setFont(gameOverFont_);
+            text.setString(label);
+            text.setCharacterSize(34);
+            text.setFillColor(sf::Color::White);
+
+            const sf::FloatRect textBounds = text.getLocalBounds();
+            text.setOrigin(
+                textBounds.left + textBounds.width * 0.5f,
+                textBounds.top + textBounds.height * 0.5f);
+            text.setPosition(
+                bounds.left + bounds.width * 0.5f,
+                bounds.top + bounds.height * 0.5f - 2.f);
+            window_.draw(text);
+        };
+
+        const sf::Vector2f mousePosition = window_.mapPixelToCoords(
+            sf::Mouse::getPosition(window_),
+            window_.getDefaultView());
+        drawMenuButton(getPlayButtonBounds(), "Graj", getPlayButtonBounds().contains(mousePosition));
+        drawMenuButton(getExitButtonBounds(), L"Wyjd\u017A", getExitButtonBounds().contains(mousePosition));
+    }
 }
 
 void Game::renderHud()
@@ -263,6 +374,33 @@ void Game::restartGame()
     const RoomType currentRoomType = roomManager_.getCurrentRoomType();
     roomManager_.changeRoom(currentRoomType);
     player_.resetForRestart(roomManager_.getCurrentRoom().getPlayerSpawnFeet());
+    updateCamera();
+}
+
+sf::FloatRect Game::getPlayButtonBounds() const
+{
+    return {
+        (static_cast<float>(windowWidth) - menuButtonWidth) * 0.5f,
+        menuButtonTop,
+        menuButtonWidth,
+        menuButtonHeight
+    };
+}
+
+sf::FloatRect Game::getExitButtonBounds() const
+{
+    return {
+        (static_cast<float>(windowWidth) - menuButtonWidth) * 0.5f,
+        menuButtonTop + menuButtonHeight + menuButtonGap,
+        menuButtonWidth,
+        menuButtonHeight
+    };
+}
+
+void Game::startGame()
+{
+    screenState_ = ScreenState::Playing;
+    player_.setFeetPosition(roomManager_.getCurrentRoom().getPlayerSpawnFeet());
     updateCamera();
 }
 
