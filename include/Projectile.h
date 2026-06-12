@@ -6,6 +6,7 @@
 
 #include <vector>
 
+// Short-lived visual effect used by the player's long range spell.
 class Projectile : public Entity
 {
 public:

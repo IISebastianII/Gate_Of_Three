@@ -2,6 +2,7 @@
 
 #include <SFML/Graphics.hpp>
 
+// Draws the circular health indicator shown below enemies.
 class RadialHealthIndicator
 {
 public:

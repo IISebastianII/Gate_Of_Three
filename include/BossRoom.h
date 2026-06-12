@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 
+// Final room containing the Crystal Golem boss.
 class BossRoom : public Room
 {
 public:

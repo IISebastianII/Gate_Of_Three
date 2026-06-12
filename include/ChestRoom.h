@@ -10,6 +10,7 @@
 
 class Chest;
 
+// Room containing the chest that unlocks the player's spell.
 class ChestRoom : public Room
 {
 public:

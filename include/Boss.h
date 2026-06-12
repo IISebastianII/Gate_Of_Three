@@ -2,6 +2,7 @@
 
 #include "Enemy.h"
 
+// Boss variant configured with more health, range and larger animations.
 class Boss : public Enemy
 {
 public:

@@ -92,6 +92,7 @@ void Game::run()
 
     while (window_.isOpen())
     {
+        // Limiting delta time prevents large physics jumps after a short freeze.
         const float deltaTime = std::min(clock.restart().asSeconds(), maxDeltaTime);
         processEvents();
         update(deltaTime);
@@ -153,6 +154,7 @@ void Game::processEvents()
         if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::E && !player_.isDead())
         {
             Room& room = roomManager_.getCurrentRoom();
+            // The same key is used for exits and nearby interactive objects.
             if (const RoomExit* exit = room.findTouchedExit(player_.getBounds()))
             {
                 const RoomType targetRoom = exit->getTargetRoom();
@@ -185,6 +187,7 @@ void Game::update(float deltaTime)
     }
     if (player_.consumeSpellProjectileSpawnRequest())
     {
+        // The projectile appears on a selected frame of the spell animation.
         const Spell& spell = player_.getLongBlastSpell();
         room.spawnProjectile(
             player_.getSpellSpawnPosition(),
@@ -204,6 +207,7 @@ void Game::update(float deltaTime)
 
     if (player_.isDead() && roomManager_.getCurrentRoomType() != RoomType::Tutorial)
     {
+        // The death animation is shown in the tutorial room before restarting.
         roomManager_.changeRoom(RoomType::Tutorial);
         player_.setDeadFeetPosition(roomManager_.getCurrentRoom().getPlayerSpawnFeet());
     }
@@ -589,6 +593,7 @@ void Game::updateCamera()
     const float minY = roomBounds.top + halfView.y;
     const float maxY = roomBounds.top + roomBounds.height - halfView.y;
 
+    // Clamp the camera so it never shows space outside the current room.
     const float cameraX = roomBounds.width <= gameView_.getSize().x
         ? roomBounds.left + roomBounds.width * 0.5f
         : std::clamp(playerCenter.x, minX, maxX);

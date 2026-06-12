@@ -85,6 +85,7 @@ bool Chest::isOpen() const
 
 void Chest::interact()
 {
+    // The chest can only be opened once.
     if (state_ != State::Closed)
     {
         return;
@@ -121,6 +122,7 @@ bool Chest::loadFrame(const std::string& relativePath, Frame& frame)
     unsigned maxY = 0;
     bool hasVisiblePixels = false;
 
+    // Transparent margins are ignored so every frame stays on the floor.
     for (unsigned y = 0; y < size.y; ++y)
     {
         for (unsigned x = 0; x < size.x; ++x)

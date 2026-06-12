@@ -157,6 +157,7 @@ void Enemy::draw(sf::RenderTarget& target) const
 
 void Enemy::receiveDamage(int damage, sf::Vector2f sourcePosition)
 {
+    // Damage cooldown prevents one attack from hitting on several frames.
     if (dying_ || damageCooldown_ > 0.f)
     {
         return;
@@ -267,6 +268,7 @@ void Enemy::updateAi(float, Player& player)
         return;
     }
 
+    // Attacking has priority over chasing and patrolling.
     if (attackCooldown_ <= 0.f && playerWithinAttackZone)
     {
         startAttack();
@@ -277,6 +279,7 @@ void Enemy::updateAi(float, Player& player)
     if (std::abs(distanceX) <= detectionRange_)
     {
         facingRight_ = distanceX > 0.f;
+        // Keep a small gap so the attack hitbox can reach the player.
         if (clampedEdgeGap <= preferredPlayerGap_)
         {
             velocity_.x = 0.f;
@@ -289,6 +292,7 @@ void Enemy::updateAi(float, Player& player)
         return;
     }
 
+    // Outside detection range the enemy walks around its spawn point.
     const float feetX = position_.x + colliderSize_.x * 0.5f;
     if (feetX < spawnFeetX_ - patrolRange_)
     {
@@ -446,6 +450,7 @@ bool Enemy::isAttackActive() const
         return false;
     }
 
+    // Damage is active only on selected animation frames.
     return currentState_ == AnimationState::Attack
         && currentFrame_ >= attackActiveStartFrame_
         && currentFrame_ <= attackActiveEndFrame_;

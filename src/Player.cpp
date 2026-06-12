@@ -97,6 +97,7 @@ void Player::draw(sf::RenderTarget& target) const
 
 void Player::receiveDamage(int damage, sf::Vector2f sourcePosition)
 {
+    // Sliding and the short damage cooldown protect from repeated hits.
     if (dead_ || damageInvulnerabilityTimer_ > 0.f || isDodging())
     {
         return;
@@ -206,6 +207,7 @@ bool Player::trySpendSpellResources()
 
 bool Player::beginSpellCast()
 {
+    // A spell cannot interrupt another player action.
     if (dead_ || !longBlastUnlocked_ || attacking_ || sliding_ || spellCasting_ || !trySpendSpellResources())
     {
         return false;
@@ -281,6 +283,7 @@ bool Player::isAttackActive() const
         return false;
     }
 
+    // Only the middle part of the animation can deal damage.
     const float elapsed = attackDuration_ - attackTimer_;
     return elapsed >= attackActiveStart_ && elapsed <= attackActiveEnd_;
 }
@@ -423,6 +426,7 @@ void Player::applyInput()
 
 void Player::moveHorizontally(float deltaTime, const std::vector<sf::FloatRect>& solidColliders)
 {
+    // Horizontal and vertical movement are resolved separately to avoid shaking.
     const sf::FloatRect previousBounds = getBounds();
     position_.x += velocity_.x * deltaTime;
     sf::FloatRect bounds = getBounds();
@@ -434,6 +438,7 @@ void Player::moveHorizontally(float deltaTime, const std::vector<sf::FloatRect>&
             continue;
         }
 
+        // Slopes are built from narrow strips and should not act like walls.
         const bool slopeStrip = solid.width < 32.f;
         const float feetCenterX = bounds.left + bounds.width * 0.5f;
         if (slopeStrip)
@@ -497,6 +502,7 @@ void Player::moveVertically(float deltaTime, const std::vector<sf::FloatRect>& s
             continue;
         }
 
+        // The player's feet must be above the active strip to stand on a slope.
         const bool slopeStrip = solid.width < 32.f;
         const float feetCenterX = bounds.left + bounds.width * 0.5f;
         if (slopeStrip && (feetCenterX < solid.left || feetCenterX >= solid.left + solid.width))
@@ -564,6 +570,7 @@ void Player::updateActionTimers(float deltaTime)
 
     if (mana_ < maxMana_)
     {
+        // Mana returns one point at a time after the selected interval.
         manaRegenerationTimer_ += deltaTime;
         while (manaRegenerationTimer_ >= manaRegenerationInterval_ && mana_ < maxMana_)
         {
@@ -665,6 +672,7 @@ void Player::updateAnimation(float deltaTime)
     if (spellCasting_ && !spellProjectileSpawned_ && currentState_ == AnimationState::DashAttack
         && currentFrame_ >= spellProjectileSpawnFrame_)
     {
+        // This flag is consumed by Game, which creates the actual projectile.
         spellProjectileSpawnRequested_ = true;
         spellProjectileSpawned_ = true;
     }

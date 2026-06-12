@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 
+// Combat room used for both battle stages of the game.
 class BattleRoom : public Room
 {
 public:

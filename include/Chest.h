@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 
+// Interactive chest with closed, opening and open states.
 class Chest : public GameObject
 {
 public:

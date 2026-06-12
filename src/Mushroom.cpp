@@ -52,6 +52,7 @@ public:
         position_ += velocity_ * deltaTime;
         shape_.setPosition(position_);
 
+        // The projectile disappears after hitting the player, terrain or timeout.
         const sf::FloatRect bounds = getBounds();
         if (bounds.intersects(player.getBounds()))
         {
@@ -154,6 +155,7 @@ void Mushroom::update(float deltaTime, Player& player, const std::vector<sf::Flo
         {
             projectileSpawned_ = false;
             const float horizontalDistance = std::abs(toPlayer.x);
+            // Mushroom tries to keep a useful shooting distance from the player.
             if (shotCooldown_ <= 0.f && horizontalDistance <= preferredMaxDistance_)
             {
                 velocity_.x = 0.f;

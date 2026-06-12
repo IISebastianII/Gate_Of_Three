@@ -6,6 +6,7 @@
 
 #include <array>
 
+// Interactive object that requests healing and displays a short effect.
 class HealingSanctuary : public GameObject
 {
 public:

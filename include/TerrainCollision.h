@@ -19,6 +19,7 @@ inline void addLinearSlope(
     float endTop,
     float roomHeight)
 {
+    // A slope is represented by many narrow rectangles with different heights.
     constexpr float targetStripWidth = 4.f;
     const int strips = std::max(1, static_cast<int>(std::ceil(width / targetStripWidth)));
     const float stripWidth = width / static_cast<float>(strips);
@@ -44,8 +45,7 @@ inline void addGrassSlope(
     float roomHeight,
     bool risesToRight)
 {
-    // The 96 px grass slope texture contains flat ground before and after
-    // the visible rock incline. These ratios follow its actual silhouette.
+    // The grass slope texture has flat ground before and after the rock part.
     constexpr float sourceWidth = 96.f;
     constexpr float inclineStart = 16.f / sourceWidth;
     constexpr float inclineEnd = 68.f / sourceWidth;
@@ -82,6 +82,7 @@ inline void addGrassSlope(
 
 inline int findSolidTop(const sf::Image& image, int left, int top, int width, int height)
 {
+    // Read alpha values to find the first visible part of a tile.
     constexpr sf::Uint8 alphaThreshold = 32;
     constexpr int requiredVerticalRun = 3;
 
@@ -124,6 +125,7 @@ void addAtlasSurfaceColliders(
     float roomHeight,
     IsTerrain isTerrain)
 {
+    // Build the top collision surface directly from tiles stored in the atlas.
     constexpr int sourceStripWidth = 2;
     const int stripsPerTile = sourceTileSize / sourceStripWidth;
     const float stripWidth = static_cast<float>(sourceStripWidth) * scale;
@@ -227,6 +229,7 @@ void addSurfaceColliders(
     float tileSize,
     float roomHeight)
 {
+    // This fallback creates simple colliders when an atlas is unavailable.
     const int noSurface = std::numeric_limits<int>::max();
 
     for (std::size_t column = 0; column < Columns; ++column)

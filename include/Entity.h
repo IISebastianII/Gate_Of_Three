@@ -2,6 +2,7 @@
 
 #include "GameObject.h"
 
+// Adds position, velocity and collision bounds to a game object.
 class Entity : public GameObject
 {
 public:

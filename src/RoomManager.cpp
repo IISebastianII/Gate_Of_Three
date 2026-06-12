@@ -28,6 +28,7 @@ void RoomManager::changeRoom(RoomType type)
         currentRoom_->onExit();
     }
 
+    // A fresh room also resets its enemies and interactive objects.
     currentRoom_ = createRoom(type);
     currentRoom_->onEnter();
 }

@@ -5,6 +5,7 @@
 
 #include <memory>
 
+// Creates rooms and keeps only the currently played room in memory.
 class RoomManager
 {
 public:

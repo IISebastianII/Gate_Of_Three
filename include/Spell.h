@@ -1,5 +1,6 @@
 #pragma once
 
+// Stores values shared by a spell cast and its projectile.
 class Spell
 {
 public:

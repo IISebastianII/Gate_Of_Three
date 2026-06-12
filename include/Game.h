@@ -6,6 +6,7 @@
 #include <SFML/Audio.hpp>
 #include <SFML/Graphics.hpp>
 
+// Controls the main loop and connects all main game systems.
 class Game
 {
 public:

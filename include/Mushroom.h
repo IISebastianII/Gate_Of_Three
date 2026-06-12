@@ -6,6 +6,7 @@
 
 class MushroomProjectile;
 
+// Ranged enemy that keeps distance and shoots its own projectiles.
 class Mushroom : public Enemy
 {
 public:

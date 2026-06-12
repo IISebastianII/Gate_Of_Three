@@ -92,6 +92,7 @@ sf::FloatRect HealingSanctuary::getBounds() const
 
 void HealingSanctuary::interact()
 {
+    // HealRoom consumes this request and restores the player's health.
     healingRequested_ = true;
     effectTimer_ = effectDuration_;
     updateEffects();
@@ -104,6 +105,7 @@ bool HealingSanctuary::consumeHealingRequest()
 
 void HealingSanctuary::updateEffects()
 {
+    // The effect uses simple circles and particles, so it needs no extra asset.
     const float progress = effectTimer_ > 0.f
         ? 1.f - effectTimer_ / effectDuration_
         : 0.f;

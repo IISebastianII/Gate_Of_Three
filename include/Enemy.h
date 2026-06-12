@@ -10,6 +10,7 @@
 #include <string>
 #include <vector>
 
+// Basic melee enemy. Its settings are also reused by the boss.
 class Enemy : public Entity
 {
 public:

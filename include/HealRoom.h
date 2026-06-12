@@ -10,6 +10,7 @@
 
 class HealingSanctuary;
 
+// Safe room where the player can restore health before the boss.
 class HealRoom : public Room
 {
 public:

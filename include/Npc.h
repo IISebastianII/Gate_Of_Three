@@ -7,6 +7,7 @@
 #include <filesystem>
 #include <vector>
 
+// Simple non-hostile character used in the tutorial room.
 class Npc : public Entity
 {
 public:

@@ -9,6 +9,7 @@
 #include <string>
 #include <vector>
 
+// Contains player movement, combat, statistics and animations.
 class Player : public Entity
 {
 public:

@@ -6,6 +6,7 @@
 
 class Player;
 
+// Base interface used by every object stored inside a room.
 class GameObject
 {
 public:

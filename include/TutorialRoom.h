@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 
+// First room of the game with basic terrain, an NPC and an exit.
 class TutorialRoom : public Room
 {
 public:

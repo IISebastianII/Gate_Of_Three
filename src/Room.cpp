@@ -27,6 +27,7 @@ float computeLightningLength(
     const std::vector<std::unique_ptr<GameObject>>& objects,
     GameObject*& hitTarget)
 {
+    // Find the first wall or enemy hit by the horizontal spell.
     const bool right = direction.x >= 0.f;
     const float bandTop = startPosition.y - thickness * 0.5f;
     float strikeLength = std::max(0.f, maxRange);
@@ -184,6 +185,7 @@ const std::vector<sf::FloatRect>& Room::getSolidColliders() const
 
 const RoomExit* Room::findTouchedExit(const sf::FloatRect& bounds) const
 {
+    // Battle rooms stay locked until every enemy is defeated.
     if (hasLivingEnemies())
     {
         return nullptr;
@@ -202,6 +204,7 @@ const RoomExit* Room::findTouchedExit(const sf::FloatRect& bounds) const
 
 bool Room::hasLivingEnemies() const
 {
+    // dynamic_cast also recognizes classes derived from Enemy, such as Boss.
     return std::any_of(objects_.begin(), objects_.end(), [](const auto& object) {
         const auto* enemy = dynamic_cast<const Enemy*>(object.get());
         return enemy != nullptr && enemy->isAlive() && enemy->canReceiveDamage();
@@ -243,6 +246,7 @@ Projectile& Room::spawnProjectile(sf::Vector2f startPosition, sf::Vector2f direc
         objects_,
         hitTarget);
 
+    // Damage is applied immediately. The projectile is only the visual effect.
     if (hitTarget != nullptr)
     {
         hitTarget->receiveDamage(damage, startPosition);
@@ -272,6 +276,7 @@ void Room::updateProjectileCollisions()
 
 void Room::removeDestroyedObjects()
 {
+    // Objects mark themselves as destroyed and are removed after the update.
     objects_.erase(
         std::remove_if(objects_.begin(), objects_.end(), [](const auto& object) {
             return !object->isAlive();

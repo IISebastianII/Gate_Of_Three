@@ -12,6 +12,7 @@
 class Player;
 class Projectile;
 
+// Common base for every room. It owns objects, exits and solid colliders.
 class Room
 {
 public:

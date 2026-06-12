@@ -5,6 +5,7 @@
 
 #include <SFML/Graphics.hpp>
 
+// Defines a trigger area and the room reached through it.
 class RoomExit : public GameObject
 {
 public:
